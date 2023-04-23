@@ -8,8 +8,12 @@ import java.util.Map;
 
 public interface ItemService {
     ItemDto addItem(Integer owner, @Valid ItemDto itemDto);
+
     ItemDto updateItem(Integer owner, Map<String, Object> itemFields, Integer id);
+
     ItemDto getItem(Integer id);
+
     List<ItemDto> getItems(Integer owner);
+
     List<ItemDto> getItemsBySearch(String text);
 }

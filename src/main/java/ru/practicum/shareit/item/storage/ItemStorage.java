@@ -7,8 +7,12 @@ import java.util.Map;
 
 public interface ItemStorage {
     ItemDto addItem(Integer owner, ItemDto itemDto);
+
     ItemDto updateItem(Integer owner, Map<String, Object> itemFields, Integer id);
+
     ItemDto getItem(Integer id);
+
     List<ItemDto> getAllUserItems(Integer owner);
+
     List<ItemDto> getItemsBySearch(String text);
 }

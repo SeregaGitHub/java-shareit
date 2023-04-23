@@ -20,6 +20,7 @@ import java.util.Map;
 public class ItemServiceImpl implements ItemService {
     private final ItemStorage itemStorage;
     private final UserStorage userStorage;
+
     @Override
     public ItemDto addItem(Integer owner, @Valid ItemDto itemDto) {
         Utilities.checkUserExist(owner, userStorage);

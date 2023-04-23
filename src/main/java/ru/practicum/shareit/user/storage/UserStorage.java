@@ -7,8 +7,12 @@ import java.util.Map;
 
 public interface UserStorage {
     List<User> getAllUsers();
+
     User getUser(Integer id);
+
     User addUser(User user);
+
     User updateUser(Integer id, Map<String, Object> userFields);
+
     User deleteUser(Integer id);
 }
