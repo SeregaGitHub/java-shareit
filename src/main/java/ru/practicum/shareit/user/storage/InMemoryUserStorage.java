@@ -15,7 +15,7 @@ import java.util.*;
 @Slf4j
 @RequiredArgsConstructor
 public class InMemoryUserStorage implements UserStorage {
-    private static Integer userId = 0;
+    private Integer userId = 0;
     private final Map<Integer, User> users = new HashMap<>();
 
     @Override

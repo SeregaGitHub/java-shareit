@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 @Repository
 public class InMemoryItemStorage implements ItemStorage {
-    private static Integer itemId = 0;
+    private Integer itemId = 0;
     private final Map<Integer, Item> items = new HashMap<>();
     private final Map<Integer, List<Integer>> userItems = new HashMap<>();
 
