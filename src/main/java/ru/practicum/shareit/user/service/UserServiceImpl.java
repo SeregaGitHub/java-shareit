@@ -37,7 +37,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User addUser(@Valid User user) {
-        log.info("User with Id={} was added", user.getId());
+        log.info("User with name={} was added", user.getName());
         userStorage.addUser(user);
         return user;
     }

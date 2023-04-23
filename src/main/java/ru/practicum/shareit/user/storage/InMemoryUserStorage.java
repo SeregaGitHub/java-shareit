@@ -16,22 +16,22 @@ import java.util.*;
 @RequiredArgsConstructor
 public class InMemoryUserStorage implements UserStorage {
     private static Integer userId = 0;
-    private final Map<Integer, User> userMap = new HashMap<>();
+    private final Map<Integer, User> users = new HashMap<>();
     @Override
     public List<User> getAllUsers() {
-        return new ArrayList<>(userMap.values());
+        return new ArrayList<>(users.values());
     }
 
     @Override
     public User getUser(Integer id) {
-        return userMap.get(id);
+        return users.get(id);
     }
 
     @Override
     public User addUser(User user) {
-        Utilities.checkDuplicateEmail(user.getEmail(), userMap);
+        Utilities.checkDuplicateEmail(user.getEmail(), users);
         user.setId(++userId);
-        userMap.put(user.getId(), user);
+        users.put(user.getId(), user);
         return user;
     }
 
@@ -44,7 +44,7 @@ public class InMemoryUserStorage implements UserStorage {
         String checkEmail;
         if (opt.isPresent()) {
             checkEmail = (String) opt.get().getValue();
-            Utilities.checkDuplicateEmailWhenUpdating(checkEmail, userMap, id);
+            Utilities.checkDuplicateEmailWhenUpdating(checkEmail, users, id);
         }
 
         User user = getUser(id);
@@ -60,12 +60,12 @@ public class InMemoryUserStorage implements UserStorage {
             });
         }
         log.info("User with Id={} was updated", id);
-        userMap.put(id, user);
+        users.put(id, user);
         return user;
     }
 
     @Override
     public User deleteUser(Integer id) {
-        return userMap.remove(id);
+        return users.remove(id);
     }
 }

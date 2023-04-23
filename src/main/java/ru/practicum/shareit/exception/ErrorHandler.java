@@ -33,4 +33,12 @@ public class ErrorHandler {
                 "errorMessage - ", exception.getMessage()
         );
     }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleNoOwner(OwnerNotFoundException exception) {
+        return Map.of(
+                "errorMessage - ", exception.getMessage()
+        );
+    }
 }
