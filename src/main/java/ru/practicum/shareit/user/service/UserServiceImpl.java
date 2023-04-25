@@ -5,12 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.exception.UserNotFoundException;
+import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserStorage;
 
-import javax.validation.Valid;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @Slf4j
@@ -36,15 +35,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User addUser(@Valid User user) {
-        log.info("User with name={} was added", user.getName());
-        userStorage.addUser(user);
-        return user;
+    public UserDto addUser(UserDto userDto) {
+        log.info("User with name={} was added", userDto.getName());
+        userStorage.addUser(userDto);
+        return userDto;
     }
 
     @Override
-    public User updateUser(Integer id, Map<String, Object> userFields) {
-        return userStorage.updateUser(id, userFields);
+    public UserDto updateUser(Integer id, UserDto userDto) {
+        return userStorage.updateUser(id, userDto);
     }
 
     @Override

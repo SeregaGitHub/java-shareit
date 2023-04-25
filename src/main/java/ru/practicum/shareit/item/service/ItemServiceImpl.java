@@ -3,36 +3,32 @@ package ru.practicum.shareit.item.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.storage.ItemStorage;
 import ru.practicum.shareit.user.storage.UserStorage;
 import ru.practicum.shareit.util.Utilities;
 
-import javax.validation.Valid;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @Slf4j
-@Validated
 @RequiredArgsConstructor
 public class ItemServiceImpl implements ItemService {
     private final ItemStorage itemStorage;
     private final UserStorage userStorage;
 
     @Override
-    public ItemDto addItem(Integer owner, @Valid ItemDto itemDto) {
+    public ItemDto addItem(Integer owner, ItemDto itemDto) {
         Utilities.checkUserExist(owner, userStorage);
         log.info("Item with name={} was added", itemDto.getName());
-        itemStorage.addItem(owner, itemDto);
+        itemStorage.addItem(userStorage.getUser(owner), itemDto);
         return itemDto;
     }
 
     @Override
-    public ItemDto updateItem(Integer owner, Map<String, Object> itemFields, Integer id) {
+    public ItemDto updateItem(Integer owner, ItemDto itemDto, Integer id) {
         Utilities.checkUserExist(owner, userStorage);
-        return itemStorage.updateItem(owner, itemFields, id);
+        return itemStorage.updateItem(owner, itemDto, id);
     }
 
     @Override

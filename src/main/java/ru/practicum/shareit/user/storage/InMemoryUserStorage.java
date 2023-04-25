@@ -3,12 +3,12 @@ package ru.practicum.shareit.user.storage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
-import org.springframework.util.ReflectionUtils;
 import ru.practicum.shareit.exception.UserNotFoundException;
+import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.dto.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.util.Utilities;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 @Repository
@@ -29,22 +29,19 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     @Override
-    public User addUser(User user) {
-        Utilities.checkDuplicateEmail(user.getEmail(), users);
-        user.setId(++userId);
-        users.put(user.getId(), user);
-        return user;
+    public UserDto addUser(UserDto userDto) {
+        Utilities.checkDuplicateEmail(userDto.getEmail(), users);
+        userDto.setId(++userId);
+        users.put(userDto.getId(), UserMapper.toUser(userDto));
+        return userDto;
     }
 
     @Override
-    public User updateUser(Integer id, Map<String, Object> userFields) {
-        Optional<Map.Entry<String, Object>> opt = userFields.entrySet()
-                .stream()
-                .filter(v -> v.getKey().equals("email"))
-                .findFirst();
+    public UserDto updateUser(Integer id, UserDto updatedUser) {
+        Optional<String> opt = Optional.ofNullable(updatedUser.getEmail());
         String checkEmail;
         if (opt.isPresent()) {
-            checkEmail = (String) opt.get().getValue();
+            checkEmail = opt.get();
             Utilities.checkDuplicateEmailWhenUpdating(checkEmail, users, id);
         }
 
@@ -53,20 +50,23 @@ public class InMemoryUserStorage implements UserStorage {
             log.warn("User with Id={} - does not exist", id);
             throw new UserNotFoundException("User with Id=" + id + " - does not exist");
         } else {
-            userFields.forEach((k, v) -> {
-                Field field = ReflectionUtils.findField(User.class, k);
-                assert field != null;
-                field.setAccessible(true);
-                ReflectionUtils.setField(field, user, v);
-            });
+            user = makeUser(user, updatedUser);
+            users.put(user.getId(), user);
+            log.info("User with Id={} was updated", id);
         }
-        log.info("User with Id={} was updated", id);
-        users.put(id, user);
-        return user;
+        return UserMapper.toUserDto(user);
     }
 
     @Override
     public User deleteUser(Integer id) {
         return users.remove(id);
+    }
+
+    private User makeUser(User oldUser, UserDto userDto) {
+        return User.builder()
+                .id(oldUser.getId())
+                .name(userDto.getName() == null ? oldUser.getName() : userDto.getName())
+                .email(userDto.getEmail() == null ? oldUser.getEmail() : userDto.getEmail())
+                .build();
     }
 }

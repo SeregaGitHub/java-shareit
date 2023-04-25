@@ -1,32 +1,33 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.util.mark.Create;
+import ru.practicum.shareit.util.mark.Update;
 import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.List;
-import java.util.Map;
 
-/**
- * TODO Sprint add-controllers.
- */
 @RestController
 @RequestMapping("/items")
+@Validated
 @RequiredArgsConstructor
 public class ItemController {
     private final ItemService itemService;
 
     @PostMapping
-    public ItemDto addItem(@RequestHeader("X-Sharer-User-Id") Integer owner, @RequestBody ItemDto itemDto) {
+    public ItemDto addItem(@RequestHeader("X-Sharer-User-Id") Integer owner,
+                           @Validated(Create.class) @RequestBody ItemDto itemDto) {
         itemService.addItem(owner, itemDto);
         return itemDto;
     }
 
     @PatchMapping("/{id}")
     public ItemDto updateItem(@RequestHeader("X-Sharer-User-Id") Integer owner,
-                              @RequestBody Map<String, Object> itemFields, @PathVariable("id") Integer id) {
-        return itemService.updateItem(owner, itemFields, id);
+                              @RequestBody @Validated(Update.class) ItemDto itemDto, @PathVariable("id") Integer id) {
+        return itemService.updateItem(owner, itemDto, id);
     }
 
     @GetMapping("/{id}")
