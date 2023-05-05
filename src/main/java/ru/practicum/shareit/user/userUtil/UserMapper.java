@@ -1,6 +1,7 @@
-package ru.practicum.shareit.user.dto;
+package ru.practicum.shareit.user.userUtil;
 
 import org.springframework.stereotype.Component;
+import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
 @Component

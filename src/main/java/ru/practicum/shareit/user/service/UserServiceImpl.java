@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
-import ru.practicum.shareit.exception.UserNotFoundException;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserStorage;
@@ -28,7 +28,7 @@ public class UserServiceImpl implements UserService {
         User user = userStorage.getUser(id);
         if (user == null) {
             log.warn("User with Id={} - does not exist", id);
-            throw new UserNotFoundException("User with Id=" + id + " - does not exist");
+            throw new NotFoundException("User with Id=" + id + " - does not exist");
         } else {
             return user;
         }
@@ -51,7 +51,7 @@ public class UserServiceImpl implements UserService {
         User user = userStorage.deleteUser(id);
         if (user == null) {
             log.warn("User with Id={} - does not exist", id);
-            throw new UserNotFoundException("User with Id=" + id + " - does not exist");
+            throw new NotFoundException("User with Id=" + id + " - does not exist");
         } else {
             log.info("User with Id={} - was deleted", id);
         }

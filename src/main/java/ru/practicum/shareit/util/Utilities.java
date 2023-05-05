@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.exception.OwnerNotFoundException;
 import ru.practicum.shareit.exception.UserEmailHaveDuplicate;
-import ru.practicum.shareit.exception.UserNotFoundException;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserStorage;
 
@@ -32,7 +32,7 @@ public class Utilities {
         } else {
             if (userStorage.getUser(user) == null) {
                 log.warn("User with Id={} - does not exist", user);
-                throw new UserNotFoundException("User with Id=" + user + " - does not exist");
+                throw new NotFoundException("User with Id=" + user + " - does not exist");
             }
         }
     }

@@ -1,9 +1,10 @@
 package ru.practicum.shareit.item.storage;
 
 import org.springframework.stereotype.Repository;
-import ru.practicum.shareit.exception.UserNotFoundException;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemMapper;
+import ru.practicum.shareit.item.itemUtil.ItemMapper;
+import ru.practicum.shareit.item.dto.ItemWithBookingDto;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
@@ -33,21 +34,21 @@ public class InMemoryItemStorage implements ItemStorage {
             item = makeItem(item, itemDto);
             items.put(item.getId(), item);
         } else {
-            throw new UserNotFoundException("Item belongs to another owner");
+            throw new NotFoundException("Item belongs to another owner");
         }
         return ItemMapper.toItemDto(item);
     }
 
     @Override
-    public ItemDto getItem(Integer id) {
-        return ItemMapper.toItemDto(items.get(id));
+    public ItemWithBookingDto getItem(Integer id) {
+        return ItemMapper.toItemNoBookingDto(items.get(id), new ArrayList<>());
     }
 
     @Override
-    public List<ItemDto> getAllUserItems(Integer owner) {
+    public List<ItemWithBookingDto> getAllUserItems(Integer owner) {
         return userItems.get(owner)
                 .stream()
-                .map(v -> ItemMapper.toItemDto(items.get(v)))
+                .map(v -> ItemMapper.toItemNoBookingDto(items.get(v), new ArrayList<>()))
                 .collect(Collectors.toList());
     }
 
