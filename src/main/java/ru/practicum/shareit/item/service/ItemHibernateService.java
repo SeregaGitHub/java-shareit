@@ -16,7 +16,7 @@ import ru.practicum.shareit.item.dto.ItemShot;
 import ru.practicum.shareit.item.dto.ItemWithBookingDto;
 import ru.practicum.shareit.item.itemUtil.ItemMapper;
 import ru.practicum.shareit.item.itemUtil.ItemUtil;
-import ru.practicum.shareit.item.model.CommentMapper;
+import ru.practicum.shareit.item.itemUtil.CommentMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.CommentRepository;
 import ru.practicum.shareit.item.storage.ItemRepository;

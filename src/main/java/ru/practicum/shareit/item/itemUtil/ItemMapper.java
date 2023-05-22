@@ -39,7 +39,7 @@ public class ItemMapper {
         BookingForItemDto lastBooking = null;
         BookingForItemDto nextBooking = null;
 
-        for (BookingForItemDto b: bookingList) {
+        for (BookingForItemDto b : bookingList) {
             if (b.getStartTime().isBefore(now)) {
                 lastBooking = b;
             } else if (b.getStartTime().isAfter(now)) {
@@ -62,7 +62,7 @@ public class ItemMapper {
                 nextBooking = b;
             }
         }
-        return new ItemWithBookingDto(itemShot.getId(), itemShot.getName(), itemShot.getDescription(), 
+        return new ItemWithBookingDto(itemShot.getId(), itemShot.getName(), itemShot.getDescription(),
                 itemShot.getAvailable(), lastBooking, nextBooking, new ArrayList<>());
     }
 
