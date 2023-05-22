@@ -11,7 +11,7 @@ public class ItemWithBookingDto extends ItemDto {
     private final BookingForItemDto lastBooking;
     private final BookingForItemDto nextBooking;
     private final List<CommentDto> comments;
-    
+
     public ItemWithBookingDto(@NotNull Integer id,
                               @NotBlank String name,
                               @NotBlank String description,
