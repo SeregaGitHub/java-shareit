@@ -51,10 +51,12 @@ public class Booking {
     @Column(name = "end_time", nullable = false)
     LocalDateTime end;
     @NotNull
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id", nullable = false)
     Item item;
     @NotNull
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     User booker;

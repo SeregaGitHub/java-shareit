@@ -56,7 +56,13 @@ public class BookingHibernateService implements BookingService {
     public Booking setNewStatus(Integer owner, Integer bookingId, Boolean approved) {
         Booking booking = bookingRepository.getBooking(bookingId).orElseThrow(
                 () -> new NotFoundException("Booking with Id=" + bookingId + " does not exist"));
-        if (!Objects.equals(booking.getItem().getOwner().getId(), owner)) {
+
+        if (Objects.equals(booking.getBooker().getId(), owner) && booking.getStatus().equals(Status.WAITING) && !approved) {
+            booking.setStatus(Status.CANCELED);
+            bookingRepository.save(booking);
+            log.info("Booking with Id={} was canceled by booker.", bookingId);
+            return booking;
+        } else if (!Objects.equals(booking.getItem().getOwner().getId(), owner)) {
             throw new NotFoundException("This action is prohibited for a user with Id=" + owner);
         }
         if (booking.getStatus().equals(Status.WAITING)) {

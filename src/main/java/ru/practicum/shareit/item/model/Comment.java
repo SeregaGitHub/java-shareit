@@ -27,10 +27,12 @@ public class Comment {
     @Column(name = "text")
     String text;
     @NotNull
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     User commentUser;
     @NotNull
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id", nullable = false)
     Item itemForComment;
