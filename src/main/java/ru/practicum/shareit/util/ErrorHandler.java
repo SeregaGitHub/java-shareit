@@ -12,6 +12,7 @@ import java.util.Map;
 @RestControllerAdvice
 public class ErrorHandler {
     private static final String ERROR_MESSAGE = "errorMessage - ";
+
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, String> handleUserNotFound(NotFoundException exception) {
