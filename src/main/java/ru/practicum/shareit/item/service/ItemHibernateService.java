@@ -10,16 +10,15 @@ import ru.practicum.shareit.booking.dto.BookingForItemDto;
 import ru.practicum.shareit.booking.storage.BookingRepository;
 import ru.practicum.shareit.exception.CommentErrorException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.item.dto.CommentDto;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemShot;
-import ru.practicum.shareit.item.dto.ItemWithBookingDto;
+import ru.practicum.shareit.item.dto.*;
+import ru.practicum.shareit.item.itemUtil.CommentMapper;
 import ru.practicum.shareit.item.itemUtil.ItemMapper;
 import ru.practicum.shareit.item.itemUtil.ItemUtil;
-import ru.practicum.shareit.item.itemUtil.CommentMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.CommentRepository;
 import ru.practicum.shareit.item.storage.ItemRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.storage.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
 
@@ -28,6 +27,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,14 +39,23 @@ public class ItemHibernateService implements ItemService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     @Override
-    public ItemDto addItem(Integer owner, ItemDto itemDto) {
+    public ItemWithRequestDto addItem(Integer owner, ItemWithRequestDto itemWithRequestDto) {
+        Optional<Integer> requestIdOpt = Optional.ofNullable(itemWithRequestDto.getRequestId());
+        ItemRequest itemRequest = null;
+        if (requestIdOpt.isPresent()) {
+            Optional<ItemRequest> itemRequestOpt = itemRequestRepository.findById(requestIdOpt.get());
+            itemRequest = itemRequestOpt.orElse(null);
+        }
+
         Integer itemId = itemRepository.save(ItemMapper.toItem(userRepository.findById(owner).orElseThrow(
-                () -> new NotFoundException("User with Id=" + owner + " - does not exist")), itemDto)).getId();
-        itemDto.setId(itemId);
-        log.info("Item with name={} was added", itemDto.getName());
-        return itemDto;
+                () -> new NotFoundException("User with Id=" + owner + " - does not exist")), itemWithRequestDto, itemRequest)).getId();
+
+        itemWithRequestDto.setId(itemId);
+        log.info("Item with name={} was added", itemWithRequestDto.getName());
+        return itemWithRequestDto;
     }
 
     @Override

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemWithBookingDto;
+import ru.practicum.shareit.item.dto.ItemWithRequestDto;
 import ru.practicum.shareit.item.storage.ItemStorage;
 import ru.practicum.shareit.user.storage.UserStorage;
 import ru.practicum.shareit.util.Utilities;
@@ -20,7 +21,7 @@ public class ItemServiceImpl implements ItemService {
     private final UserStorage userStorage;
 
     @Override
-    public ItemDto addItem(Integer owner, ItemDto itemDto) {
+    public ItemWithRequestDto addItem(Integer owner, ItemWithRequestDto itemDto) {
         Utilities.checkUserExist(owner, userStorage);
         log.info("Item with name={} was added", itemDto.getName());
         itemStorage.addItem(userStorage.getUser(owner), itemDto);

@@ -2,11 +2,9 @@ package ru.practicum.shareit.item.itemUtil;
 
 import org.springframework.stereotype.Component;
 import ru.practicum.shareit.booking.dto.BookingForItemDto;
-import ru.practicum.shareit.item.dto.CommentDto;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemShot;
-import ru.practicum.shareit.item.dto.ItemWithBookingDto;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
@@ -31,6 +29,17 @@ public class ItemMapper {
                 .description(itemDto.getDescription())
                 .available(itemDto.getAvailable())
                 .owner(owner)
+                .build();
+    }
+
+    public static Item toItem(User owner, ItemWithRequestDto itemDto, ItemRequest itemRequest) {
+        return Item.builder()
+                .id(itemDto.getId())
+                .name(itemDto.getName())
+                .description(itemDto.getDescription())
+                .available(itemDto.getAvailable())
+                .owner(owner)
+                .itemRequest(itemRequest)
                 .build();
     }
 
