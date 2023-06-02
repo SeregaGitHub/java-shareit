@@ -4,21 +4,28 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import ru.practicum.shareit.util.mark.Create;
+import lombok.NoArgsConstructor;
+import ru.practicum.shareit.item.dto.ItemWithRequestDto;
+import ru.practicum.shareit.item.dto.ItemWithRequestIdDto;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ItemRequestDto {
+public class ItemRequestWithItemsDto {
+    @NotNull
     private Integer id;
-    @NotBlank(groups = {Create.class}, message = "Описание не может быть пустым.")
-    @Size(max = 3000, message = "Описание не может быть больше 3000 символов.")
+    @NotNull
     private String description;
+    @NotNull
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime created;
+    @NotNull
     private Integer requester;
+    @NotNull
+    private List<ItemWithRequestIdDto> items;
 }

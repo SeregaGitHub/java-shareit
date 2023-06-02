@@ -3,9 +3,13 @@ package ru.practicum.shareit.request.requestUtil;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.config.Configuration;
 import org.springframework.stereotype.Component;
+import ru.practicum.shareit.item.dto.ItemWithRequestIdDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.dto.ItemRequestWithItemsDto;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
+
+import java.util.List;
 
 @Component
 public class RequestMapper {
@@ -25,5 +29,11 @@ public class RequestMapper {
 
     public ItemRequestDto toItemRequestDto(ItemRequest itemRequest) {
         return modelMapper.map(itemRequest, ItemRequestDto.class);
+    }
+
+    public ItemRequestWithItemsDto toItemRequestWithItemsDto(ItemRequestDto itemRequestDto, List<ItemWithRequestIdDto> list) {
+        ItemRequestWithItemsDto itemRequestWithItemsDto = modelMapper.map(itemRequestDto, ItemRequestWithItemsDto.class);
+        itemRequestWithItemsDto.setItems(list);
+        return itemRequestWithItemsDto;
     }
 }
