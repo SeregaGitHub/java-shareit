@@ -19,6 +19,8 @@ public class RequestMapper {
         this.modelMapper = new ModelMapper();
         Configuration configuration = modelMapper.getConfiguration();
         configuration.setFieldAccessLevel(Configuration.AccessLevel.PRIVATE);
+        modelMapper.typeMap(ItemRequest.class, ItemRequestDto.class)
+                .addMappings(m -> m.skip(ItemRequestDto::setRequester));
     }
 
     public ItemRequest toItemRequest(ItemRequestDto itemRequestDto, User user) {
@@ -28,7 +30,9 @@ public class RequestMapper {
     }
 
     public ItemRequestDto toItemRequestDto(ItemRequest itemRequest) {
-        return modelMapper.map(itemRequest, ItemRequestDto.class);
+        ItemRequestDto itemRequestDto = modelMapper.map(itemRequest, ItemRequestDto.class);
+        itemRequestDto.setRequester(itemRequest.getRequester().getId());
+        return itemRequestDto;
     }
 
     public ItemRequestWithItemsDto toItemRequestWithItemsDto(ItemRequestDto itemRequestDto, List<ItemWithRequestIdDto> list) {

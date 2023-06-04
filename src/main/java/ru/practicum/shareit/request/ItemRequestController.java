@@ -28,4 +28,10 @@ public class ItemRequestController {
     public List<ItemRequestWithItemsDto> getItemRequestsList(@RequestHeader("X-Sharer-User-Id") Integer userId) {
         return itemRequestService.getItemRequestsList(userId);
     }
+
+    @GetMapping("/{requestId}")
+    public ItemRequestWithItemsDto getItemRequestById(@RequestHeader("X-Sharer-User-Id") Integer userId,
+                                                      @PathVariable("requestId") Integer requestId) {
+        return itemRequestService.getItemRequestById(userId, requestId);
+    }
 }

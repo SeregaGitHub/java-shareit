@@ -5,7 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ru.practicum.shareit.item.dto.ItemWithRequestDto;
 import ru.practicum.shareit.item.dto.ItemWithRequestIdDto;
 
 import javax.validation.constraints.NotNull;

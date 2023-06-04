@@ -64,9 +64,9 @@ public class ItemRequestHibernateService implements ItemRequestService {
                         list.add(itemWithRequestIdDtoList.get(j));
                         itemWithRequestIdDtoList.remove(j);
                         j--;
- // Обе коллекции отсортированы по RequestId. Вложенный цикл прекращает работу как только RequestId перестают совпадать
+ // Обе коллекции отсортированы по RequestId desc. Вложенный цикл прекращает работу как только RequestId перестают совпадать
                  // и каждый раз при совпадении элемент из коллекции вложенного цикла - удаляется.
-                               // Для того чтобы не было повторных проходов.
+                               // Всё для того чтобы не было повторных проходов.
                     } else {
                         break;
                     }
@@ -75,5 +75,16 @@ public class ItemRequestHibernateService implements ItemRequestService {
             }
         }
         return result;
+    }
+
+    @Override
+    public ItemRequestWithItemsDto getItemRequestById(Integer userId, Integer requestId) {
+        userRepository.findById(userId).orElseThrow(
+                () -> new NotFoundException("User with Id=" + userId + " - does not exist"));
+        ItemRequestDto itemRequestDto = requestMapper.toItemRequestDto(itemRequestRepository.findById(requestId).orElseThrow(
+                () -> new NotFoundException("Item request with Id=" + requestId + " - does not exist")));
+
+        List<ItemWithRequestIdDto> list = itemRepository.getItemsWithRequestDtoList(Set.of(requestId));
+        return requestMapper.toItemRequestWithItemsDto(itemRequestDto, list);
     }
 }

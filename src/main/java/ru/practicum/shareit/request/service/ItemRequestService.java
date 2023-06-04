@@ -9,4 +9,6 @@ public interface ItemRequestService {
     ItemRequestDto addItemRequest(Integer userId, ItemRequestDto itemRequestDto);
 
     List<ItemRequestWithItemsDto> getItemRequestsList(Integer userId);
+
+    ItemRequestWithItemsDto getItemRequestById(Integer userId, Integer requestId);
 }
