@@ -71,7 +71,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleItemRequestPagination(ItemRequestPaginationException exception) {
+    public Map<String, String> handleItemRequestPagination(RequestPaginationException exception) {
         return Map.of(
                 ERROR_MESSAGE, exception.getMessage()
         );

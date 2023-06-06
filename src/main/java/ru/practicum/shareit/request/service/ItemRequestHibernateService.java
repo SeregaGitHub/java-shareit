@@ -10,7 +10,7 @@ import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestWithItemsDto;
 import ru.practicum.shareit.request.model.ItemRequest;
-import ru.practicum.shareit.request.requestUtil.ItemRequestPaginationValid;
+import ru.practicum.shareit.util.RequestPaginationValid;
 import ru.practicum.shareit.request.requestUtil.RequestCollectionMapper;
 import ru.practicum.shareit.request.requestUtil.RequestMapper;
 import ru.practicum.shareit.request.storage.ItemRequestRepository;
@@ -60,7 +60,7 @@ public class ItemRequestHibernateService implements ItemRequestService {
     public List<ItemRequestWithItemsDto> getAllItemRequestsList(Integer userId, Integer from, Integer size) {
         userRepository.findById(userId).orElseThrow(
                 () -> new NotFoundException("User with Id=" + userId + " - does not exist"));
-        ItemRequestPaginationValid.itemRequestPaginationValid(from, size);
+        RequestPaginationValid.requestPaginationValid(from, size);
 
         List<ItemRequestDto> itemRequestList;
         if (from == null || size == null) {
