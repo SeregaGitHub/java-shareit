@@ -1,5 +1,6 @@
 package ru.practicum.shareit.item.storage;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import ru.practicum.shareit.item.dto.ItemShot;
@@ -13,7 +14,11 @@ import java.util.Set;
 public interface ItemRepository extends JpaRepository<Item, Integer> {
     List<Item> findByAvailableTrueAndNameIgnoreCaseOrAvailableTrueAndDescriptionIgnoreCaseContaining(String name, String description);
 
+    List<Item> findByAvailableTrueAndNameIgnoreCaseOrAvailableTrueAndDescriptionIgnoreCaseContaining(String name, String description, PageRequest pageRequest);
+
     List<ItemShot> findItemsShotByOwner_Id(Integer id);
+
+    List<ItemShot> findItemsShotByOwner_Id(Integer id, PageRequest pageRequest);
 
     @Query(
             value = "select i " +

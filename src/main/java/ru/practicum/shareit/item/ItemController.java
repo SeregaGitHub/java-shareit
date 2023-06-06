@@ -39,13 +39,17 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<ItemWithBookingDto> getItems(@RequestHeader("X-Sharer-User-Id") Integer owner) {
-        return itemService.getItems(owner);
+    public List<ItemWithBookingDto> getItems(@RequestHeader("X-Sharer-User-Id") Integer owner,
+                                             @RequestParam(value = "from", required = false) Integer from,
+                                             @RequestParam(value = "size", required = false) Integer size) {
+        return itemService.getItems(owner, from, size);
     }
 
     @GetMapping("/search")
-    public List<ItemDto> getItemsBySearch(@RequestParam String text) {
-        return itemService.getItemsBySearch(text);
+    public List<ItemDto> getItemsBySearch(@RequestParam String text,
+                                          @RequestParam(value = "from", required = false) Integer from,
+                                          @RequestParam(value = "size", required = false) Integer size) {
+        return itemService.getItemsBySearch(text, from, size);
     }
 
     @PostMapping("/{itemId}/comment")

@@ -2,6 +2,8 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.bookingUtil.BookingUtil;
@@ -16,6 +18,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
+import ru.practicum.shareit.util.RequestPaginationValid;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
@@ -88,46 +91,110 @@ public class BookingHibernateService implements BookingService {
     }
 
     @Override
-    public List<Booking> getAllUserBookings(Integer booker, String stateString) {
+    public List<Booking> getAllUserBookings(Integer booker, String stateString, Integer from, Integer size) {
+        RequestPaginationValid.requestPaginationValid(from, size);
+
         userRepository.findById(booker).orElseThrow(
                 () -> new NotFoundException("User with Id=" + booker + " - does not exist"));
         State state = BookingUtil.makeState(stateString);
         LocalDateTime localDateTimeNow = LocalDateTime.now();
 
         if (state.equals(State.WAITING)) {
-            return bookingRepository.getUserBookingsByStatus(booker, Status.WAITING);
+            if (from == null || size == null) {
+                return bookingRepository.getUserBookingsByStatus(booker, Status.WAITING);
+            } else {
+                return bookingRepository.getUserBookingsByStatus(booker, Status.WAITING,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
+            }
         } else if (state.equals(State.REJECTED)) {
-            return bookingRepository.getUserBookingsByStatus(booker, Status.REJECTED);
+            if (from == null || size == null) {
+                return bookingRepository.getUserBookingsByStatus(booker, Status.REJECTED);
+            } else {
+                return bookingRepository.getUserBookingsByStatus(booker, Status.REJECTED,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
+            }
         } else if (state.equals(State.FUTURE)) {
-            return bookingRepository.getUserBookingInFuture(booker, localDateTimeNow);
+            if (from == null || size == null) {
+                return bookingRepository.getUserBookingInFuture(booker, localDateTimeNow);
+            } else {
+                return bookingRepository.getUserBookingInFuture(booker, localDateTimeNow,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
+            }
         } else if (state.equals(State.PAST)) {
-            return bookingRepository.getUserBookingInPast(booker, localDateTimeNow);
+            if (from == null || size == null) {
+                return bookingRepository.getUserBookingInPast(booker, localDateTimeNow);
+            } else {
+                return bookingRepository.getUserBookingInPast(booker, localDateTimeNow,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
+            }
         } else if (state.equals(State.CURRENT)) {
-            return bookingRepository.getUserBookingInCurrent(booker, localDateTimeNow);
+            if (from == null || size == null) {
+                return bookingRepository.getUserBookingInCurrent(booker, localDateTimeNow);
+            } else {
+                return bookingRepository.getUserBookingInCurrent(booker, localDateTimeNow,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
+            }
         } else {
-            return bookingRepository.getAllUserBookings(booker);
+            if (from == null || size == null) {
+                return bookingRepository.getAllUserBookings(booker);
+            } else {
+                return bookingRepository.getAllUserBookings(booker,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
+            }
         }
     }
 
     @Override
-    public List<Booking> getAllOwnerBooking(Integer owner, String stateString) {
+    public List<Booking> getAllOwnerBooking(Integer owner, String stateString, Integer from, Integer size) {
+        RequestPaginationValid.requestPaginationValid(from, size);
+
         userRepository.findById(owner).orElseThrow(
                 () -> new NotFoundException("User with Id=" + owner + " - does not exist"));
         State state = BookingUtil.makeState(stateString);
         LocalDateTime localDateTimeNow = LocalDateTime.now();
 
         if (state.equals(State.WAITING)) {
-            return bookingRepository.getOwnerBookingsByStatus(owner, Status.WAITING);
+            if (from == null || size == null) {
+                return bookingRepository.getOwnerBookingsByStatus(owner, Status.WAITING);
+            } else {
+                return bookingRepository.getOwnerBookingsByStatus(owner, Status.WAITING,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
+            }
         } else if (state.equals(State.REJECTED)) {
-            return bookingRepository.getOwnerBookingsByStatus(owner, Status.REJECTED);
+            if (from == null || size == null) {
+                return bookingRepository.getOwnerBookingsByStatus(owner, Status.REJECTED);
+            } else {
+                return bookingRepository.getOwnerBookingsByStatus(owner, Status.REJECTED,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
+            }
         } else if (state.equals(State.FUTURE)) {
-            return bookingRepository.getOwnerBookingInFuture(owner, localDateTimeNow);
+            if (from == null || size == null) {
+                return bookingRepository.getOwnerBookingInFuture(owner, localDateTimeNow);
+            } else {
+                return bookingRepository.getOwnerBookingInFuture(owner, localDateTimeNow,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
+            }
         } else if (state.equals(State.PAST)) {
-            return bookingRepository.getOwnerBookingInPast(owner, localDateTimeNow);
+            if (from == null || size == null) {
+                return bookingRepository.getOwnerBookingInPast(owner, localDateTimeNow);
+            } else {
+                return bookingRepository.getOwnerBookingInPast(owner, localDateTimeNow,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
+            }
         } else if (state.equals(State.CURRENT)) {
-            return bookingRepository.getOwnerBookingInCurrent(owner, localDateTimeNow);
+            if (from == null || size == null) {
+                return bookingRepository.getOwnerBookingInCurrent(owner, localDateTimeNow);
+            } else {
+                return bookingRepository.getOwnerBookingInCurrent(owner, localDateTimeNow,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
+            }
         } else {
-            return bookingRepository.getAllOwnerBookings(owner);
+            if (from == null || size == null) {
+                return bookingRepository.getAllOwnerBookings(owner);
+            } else {
+                return bookingRepository.getAllOwnerBookings(owner,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
+            }
         }
     }
 }

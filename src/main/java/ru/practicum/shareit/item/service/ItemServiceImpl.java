@@ -41,13 +41,13 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<ItemWithBookingDto> getItems(Integer owner) {
+    public List<ItemWithBookingDto> getItems(Integer owner, Integer from, Integer size) {
         log.info("All items of user with Id={} was viewed", owner);
         return itemStorage.getAllUserItems(owner);
     }
 
     @Override
-    public List<ItemDto> getItemsBySearch(String text) {
+    public List<ItemDto> getItemsBySearch(String text, Integer from, Integer size) {
         log.info("All items with name or description like: {} - was viewed", text);
         return itemStorage.getItemsBySearch(text.toLowerCase());
     }

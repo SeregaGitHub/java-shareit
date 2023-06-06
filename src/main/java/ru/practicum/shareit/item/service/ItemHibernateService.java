@@ -21,6 +21,7 @@ import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.storage.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
+import ru.practicum.shareit.util.RequestPaginationValid;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
@@ -88,8 +89,16 @@ public class ItemHibernateService implements ItemService {
 
     @Override
     @Transactional
-    public List<ItemWithBookingDto> getItems(Integer owner) {
-        List<ItemShot> itemShots = itemRepository.findItemsShotByOwner_Id(owner);
+    public List<ItemWithBookingDto> getItems(Integer owner, Integer from, Integer size) {
+        RequestPaginationValid.requestPaginationValid(from, size);
+
+        List<ItemShot> itemShots;
+        if (from == null || size == null) {
+            itemShots = itemRepository.findItemsShotByOwner_Id(owner);
+        } else {
+            itemShots = itemRepository.findItemsShotByOwner_Id(owner, PageRequest.of(from > 0 ? from / size : 0, size));
+        }
+
         List<ItemWithBookingDto> dtoList = new ArrayList<>();
         LocalDateTime now = LocalDateTime.now();
 
@@ -104,11 +113,19 @@ public class ItemHibernateService implements ItemService {
     }
 
     @Override
-    public List<ItemDto> getItemsBySearch(String text) {
+    public List<ItemDto> getItemsBySearch(String text, Integer from, Integer size) {
+        RequestPaginationValid.requestPaginationValid(from, size);
+
         if (text.isBlank()) {
             return new ArrayList<>();
-        } else {
+        } else if (from == null || size == null) {
             return itemRepository.findByAvailableTrueAndNameIgnoreCaseOrAvailableTrueAndDescriptionIgnoreCaseContaining(text, text)
+                    .stream()
+                    .map(ItemMapper::toItemDto)
+                    .collect(Collectors.toList());
+        } else {
+            return itemRepository.findByAvailableTrueAndNameIgnoreCaseOrAvailableTrueAndDescriptionIgnoreCaseContaining(
+                    text, text, PageRequest.of(from > 0 ? from / size : 0, size))
                     .stream()
                     .map(ItemMapper::toItemDto)
                     .collect(Collectors.toList());

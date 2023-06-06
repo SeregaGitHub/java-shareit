@@ -66,7 +66,7 @@ public class ItemRequestHibernateService implements ItemRequestService {
         if (from == null || size == null) {
             itemRequestList = itemRequestRepository.getItemRequestsList(userId);
         } else {
-            itemRequestList = itemRequestRepository.getItemRequestsList(userId, PageRequest.of(from, size));
+            itemRequestList = itemRequestRepository.getItemRequestsList(userId, PageRequest.of(from > 0 ? from / size : 0, size));
         }
         return RequestCollectionMapper.makeItemRequestWithItemsDtoList(itemRequestList, itemRepository, requestMapper);
     }

@@ -16,9 +16,9 @@ public interface ItemService {
     ItemWithBookingDto getItem(Integer userId, Integer id);
 
     @Transactional
-    List<ItemWithBookingDto> getItems(Integer owner);
+    List<ItemWithBookingDto> getItems(Integer owner, Integer from, Integer size);
 
-    List<ItemDto> getItemsBySearch(String text);
+    List<ItemDto> getItemsBySearch(String text, Integer from, Integer size);
 
     @Transactional
     CommentDto addComment(Integer userId, Integer itemId, CommentDto commentDto);
