@@ -68,4 +68,12 @@ public class ErrorHandler {
                 ERROR_MESSAGE, exception.getMessage()
         );
     }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleItemRequestPagination(ItemRequestPaginationException exception) {
+        return Map.of(
+                ERROR_MESSAGE, exception.getMessage()
+        );
+    }
 }

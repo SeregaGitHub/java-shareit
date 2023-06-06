@@ -34,4 +34,11 @@ public class ItemRequestController {
                                                       @PathVariable("requestId") Integer requestId) {
         return itemRequestService.getItemRequestById(userId, requestId);
     }
+
+    @GetMapping("/all")
+    public List<ItemRequestWithItemsDto> getAllItemRequestsList(@RequestHeader("X-Sharer-User-Id") Integer userId,
+                                                                @RequestParam(value = "from", required = false) Integer from,
+                                                                @RequestParam(value = "size", required = false) Integer size) {
+        return itemRequestService.getAllItemRequestsList(userId, from, size);
+    }
 }
