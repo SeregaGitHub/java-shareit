@@ -12,7 +12,7 @@ import java.util.Objects;
 public class ItemWithRequestDto extends ItemDto {
     private Integer requestId;
 
-    ItemWithRequestDto(Integer id,
+    public ItemWithRequestDto(Integer id,
                        @NotBlank(groups = {Create.class}, message = "Имя не может быть пустым.")
                        @Size(max = 64, groups = {Create.class, Update.class}, message = "Имя не может быть больше 64 символов.")
                        String name,
