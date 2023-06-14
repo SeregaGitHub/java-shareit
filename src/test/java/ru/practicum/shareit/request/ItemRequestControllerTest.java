@@ -30,7 +30,6 @@ class ItemRequestControllerTest {
     private ItemRequestController itemRequestController;
     private User user;
     private LocalDateTime ldt;
-    //private ItemRequest itemRequest;
     private ItemRequestWithItemsDto itemRequestWithItemsDto;
     private ItemRequestDto itemRequestDto;
     private ItemWithRequestIdDto itemWithRequestIdDto;
@@ -45,7 +44,6 @@ class ItemRequestControllerTest {
 
         user = new User(0, "name", "email@yandex.ru");
         itemRequestDto = new ItemRequestDto(0, "requestDescription", ldt, user.getId());
-        //itemRequest = new ItemRequest(0, "requestDescription", ldt, user);
         itemWithRequestIdDto = new ItemWithRequestIdDto(0, "itemName", "itemDescription", true, 1);
         itemRequestWithItemsDto = new ItemRequestWithItemsDto(0, "requestDescription", ldt, user.getId(),
                 List.of(itemWithRequestIdDto));

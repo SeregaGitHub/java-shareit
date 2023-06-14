@@ -51,8 +51,9 @@ public class ItemHibernateService implements ItemService {
             itemRequest = itemRequestOpt.orElse(null);
         }
 
-        Integer itemId = itemRepository.save(ItemMapper.toItem(userRepository.findById(owner).orElseThrow(
-                () -> new NotFoundException("User with Id=" + owner + " - does not exist")), itemWithRequestDto, itemRequest)).getId();
+        User user = userRepository.findById(owner).orElseThrow(
+                () -> new NotFoundException("User with Id=" + owner + " - does not exist"));
+        Integer itemId = itemRepository.save(ItemMapper.toItem(user, itemWithRequestDto, itemRequest)).getId();
 
         itemWithRequestDto.setId(itemId);
         log.info("Item with name={} was added", itemWithRequestDto.getName());
@@ -145,7 +146,7 @@ public class ItemHibernateService implements ItemService {
             throw new CommentErrorException("User with Id=" + userId + " did not book item with Id=" + itemId);
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = commentDto.getCreated();
         if (now.isBefore(bookingDto.getEndTime())) {
             throw new CommentErrorException("You can not create comment before your booking is not end");
         }

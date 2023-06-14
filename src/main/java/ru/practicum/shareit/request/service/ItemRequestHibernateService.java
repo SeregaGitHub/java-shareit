@@ -10,14 +10,13 @@ import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestWithItemsDto;
 import ru.practicum.shareit.request.model.ItemRequest;
-import ru.practicum.shareit.util.RequestPaginationValid;
 import ru.practicum.shareit.request.requestUtil.RequestCollectionMapper;
 import ru.practicum.shareit.request.requestUtil.RequestMapper;
 import ru.practicum.shareit.request.storage.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
+import ru.practicum.shareit.util.RequestPaginationValid;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -36,8 +35,6 @@ public class ItemRequestHibernateService implements ItemRequestService {
                 () -> new NotFoundException("User with Id=" + userId + " does not exist"));
 
         itemRequestDto.setRequester(userId);
-        itemRequestDto.setCreated(LocalDateTime.now());
-
         ItemRequest itemRequest = requestMapper.toItemRequest(itemRequestDto, user);
         Integer requestId = itemRequestRepository.save(itemRequest).getId();
 

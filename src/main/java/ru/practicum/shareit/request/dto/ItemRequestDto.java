@@ -23,4 +23,8 @@ public class ItemRequestDto {
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime created;
     private Integer requester;
+
+    {
+        created = LocalDateTime.now();
+    }
 }
