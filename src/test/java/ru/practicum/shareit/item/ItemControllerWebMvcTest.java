@@ -50,37 +50,22 @@ class ItemControllerWebMvcTest {
     private User owner;
     private ItemWithRequestDto itemWithRequestDto;
     private ItemDto itemDto;
-//    private BookingForItemDto lastBooking;
-//    private BookingForItemDto nextBooking;
     private CommentDto commentDto;
-    //private String created;
     private LocalDateTime ldt;
     private ItemWithBookingDto itemWithBookingDto;
-   // private ItemWithBookingDto itemWithTwoBookingDto;
 
     @BeforeEach
     void beforeEach() {
-        owner = new User(1, "name", "email@yandex.ru");
-        itemWithRequestDto = new ItemWithRequestDto(0, "itemName",
-                "itemDescription", true, null);
-
         LocalDateTime now = LocalDateTime.now();
         LocalDate localDate = now.toLocalDate();
         LocalTime localTime = LocalTime.parse(now.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
         ldt = LocalDateTime.of(localDate, localTime);
 
-        // String created = localDate + " " + localTime  -  нужна так как если в
-        // .andExpect(MockMvcResultMatchers.jsonPath("$.created").value(created))
-        // поместить объект LocalDateTime, а не собранную строку - то возникает ошибка из-за буквы Т между датой и временем:
-        // java.lang.AssertionError: JSON path "$.created" expected:<2023-06-09T12:45:38> but was:<2023-06-09 12:45:38>
-        //created = localDate + " " + localTime;
-
-//        lastBooking = new BookingForItemDto(1, ldt.minusHours(2), ldt.minusHours(1), 0, 1);
-//        nextBooking = new BookingForItemDto(2, ldt.plusHours(1), ldt.plusHours(2), 0, 1);
+        owner = new User(1, "name", "email@yandex.ru");
+        itemWithRequestDto = new ItemWithRequestDto(0, "itemName",
+                "itemDescription", true, null);
         commentDto = new CommentDto(0, "someComment", "author", ldt);
         itemDto = new ItemDto(0, "itemName", "itemDescription", true);
-//        itemWithTwoBookingDto = new ItemWithBookingDto(0, "itemName", "itemDescription", true,
-//                lastBooking, nextBooking, List.of(commentDto));
         itemWithBookingDto = new ItemWithBookingDto(0, "itemName", "itemDescription", true,
                 null , null, List.of(commentDto));
     }
@@ -217,37 +202,6 @@ class ItemControllerWebMvcTest {
 
         verify(itemService, times(1)).getItem(1, itemId);
     }
-/*    @SneakyThrows
-    @Test
-    void getItem_whenUserIsOwner_thenReturnItemWithBookingDtoWithBookings() {
-        Integer itemId = 0;
-        when(itemService.getItem(1, itemId)).thenReturn(itemWithTwoBookingDto);
-
-        System.out.println("itemWithBookingDto - " + itemWithTwoBookingDto);
-
-        mockMvc.perform(MockMvcRequestBuilders.get("/items/{id}", itemId)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", 1))
-                .andDo(MockMvcResultHandlers.print())
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(0))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.name").value("itemName"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.description").value("itemDescription"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.available").value(true))
-                //.andExpect(model().attribute("person", hasProperty("name", equalTo("a name"))))
-
-                //.andExpect(MockMvcResultMatchers.jsonPath("$.lastBooking", Matchers.is(lastBooking)))
-                //.andExpect(MockMvcResultMatchers.jsonPath("$.lastBooking").value(equalTo(lastBooking)))
-                //.andExpect(MockMvcResultMatchers.jsonPath("$.lastBooking", Matchers.hasItem(lastBooking)))
-
-                //.andExpect(MockMvcResultMatchers.jsonPath("$.lastBooking").value(MockMvcResultMatchers.jsonPath("$.id").value(1)))
-                //.andExpect(MockMvcResultMatchers.jsonPath("$.lastBooking", isA(BookingForItemDto.class)))
-                //.andExpect(MockMvcResultMatchers.jsonPath("$.?lastBooking").value(lastBooking.toString()))
-                //.andExpect(MockMvcResultMatchers.jsonPath("$.nextBooking").value(nextBooking.toString()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.comments.size()").value(1));
-
-        verify(itemService, times(1)).getItem(1, itemId);
-    }*/
 
     @SneakyThrows
     @Test

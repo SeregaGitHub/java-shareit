@@ -23,6 +23,5 @@ public class BookingDto {
     @Future(groups = {Create.class, Update.class}, message = "Окончание бронирования должно быть позже настоящего времени")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime end;
-    @NotNull(groups = Create.class, message = "Вам необходимо указать какой предмет вы хотите забронировать")
-    private Integer itemId;
+    private int itemId;
 }

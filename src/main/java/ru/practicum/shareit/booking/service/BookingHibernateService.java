@@ -3,14 +3,13 @@ package ru.practicum.shareit.booking.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.bookingUtil.BookingMapper;
 import ru.practicum.shareit.booking.bookingUtil.BookingUtil;
 import ru.practicum.shareit.booking.bookingUtil.State;
 import ru.practicum.shareit.booking.bookingUtil.Status;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.bookingUtil.BookingMapper;
+import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.storage.BookingRepository;
 import ru.practicum.shareit.exception.BookingErrorException;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -36,6 +35,9 @@ public class BookingHibernateService implements BookingService {
     @Override
     @Transactional
     public Booking addBooking(Integer booker, BookingDto bookingDto) {
+        if (bookingDto.getItemId() <= 0) {
+            throw new BookingErrorException("Вам необходимо указать какой предмет вы хотите забронировать");
+        }
         Booking booking;
         boolean checkTime = BookingUtil.checkStartAndEndTime(bookingDto.getStart(), bookingDto.getEnd());
         if (checkTime) {

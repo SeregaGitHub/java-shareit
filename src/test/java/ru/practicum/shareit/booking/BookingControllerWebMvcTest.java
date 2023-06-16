@@ -31,6 +31,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 @WebMvcTest
@@ -49,15 +50,8 @@ class BookingControllerWebMvcTest {
     private ItemRequestService itemRequestService;
     private BookingDto bookingDto;
     private Booking booking;
-    private LocalDateTime ldt;
     private User user;
-//    private User owner;
-//    private User requester;
-    private Item item;
-
     private User owner;
-    private User requester;
-    private ItemRequest itemRequest;
 
 
     @BeforeEach
@@ -65,65 +59,39 @@ class BookingControllerWebMvcTest {
         LocalDateTime now = LocalDateTime.now();
         LocalDate localDate = now.toLocalDate();
         LocalTime localTime = LocalTime.parse(now.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
-        ldt = LocalDateTime.of(localDate, localTime);
+        LocalDateTime ldt = LocalDateTime.of(localDate, localTime);
 
+        user = new User(0, "name", "email@yandex.ru");
+        owner = new User(1, "owner", "owner@yandex.ru");
+        User requester = new User(2, "requester", "requester@yandex.ru");
+        ItemRequest itemRequest = new ItemRequest(0, "requestDescription", ldt, requester);
+        Item item = new Item(0, "itemName", "itemDescription", true, owner, itemRequest);
         bookingDto = BookingDto.builder()
                 .id(0)
                 .start(ldt.plusHours(1))
                 .end(ldt.plusHours(2))
-                .itemId(3)
+                .itemId(item.getId())
                 .build();
-
-        user = new User(0, "name", "email@yandex.ru");
-        owner = new User(1, "owner", "owner@yandex.ru");
-        requester = new User(2, "requester", "requester@yandex.ru");
-        itemRequest = new ItemRequest(0, "requestDescription", ldt, requester);
-        item = new Item(3, "itemName", "itemDescription", true, owner, itemRequest);
         booking = BookingMapper.toBooking(user, bookingDto, item);
     }
 
     @SneakyThrows
     @Test
-    void addBooking_whenEverythingIsOk_whenReturnOK() {
+    void addBooking() {
         Integer bookerId = booking.getBooker().getId();
-        BookingDto bookingDtoTest = BookingDto.builder()
-                .id(0)
-                .start(ldt.plusHours(1))
-                .end(ldt.plusHours(2))
-                .itemId(3)
-                .build();
-        System.out.println("bookingDtoTest 111 - " + bookingDtoTest);
-
-        when(bookingService.addBooking(bookerId, bookingDtoTest)).thenReturn(booking);
-
-        System.out.println("bookingDtoTest - 222 " + bookingDtoTest);
-        System.out.println("booking - " + booking);
-
-/*        System.out.println("booking - " + booking);
+        when(bookingService.addBooking(bookerId, bookingDto)).thenReturn(booking);
 
         String result = mockMvc.perform(MockMvcRequestBuilders.post("/bookings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .header("X-Sharer-User-Id", bookerId)
                         .content(objectMapper.writeValueAsString(booking)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(0))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.status().isOk())
                 .andReturn()
                 .getResponse()
-                .getContentAsString();*/
-//
-//        assertEquals(objectMapper.writeValueAsString(booking), result);
-//        verify(bookingService, times(1)).addBooking(bookerId, bookingDtoTest);
+                .getContentAsString();
 
-        /*String result = */mockMvc.perform(MockMvcRequestBuilders.post("/bookings")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", bookerId)
-                        .content(objectMapper.writeValueAsString(booking)))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                /*.andReturn()
-                .getResponse()
-                .getContentAsString()*/;
-        System.out.println("bookingDtoTest - 333 " + bookingDtoTest);
-        //verify(bookingService, times(1)).addBooking(bookerId, bookingDtoTest);
+        assertEquals(objectMapper.writeValueAsString(booking), result);
+        verify(bookingService, times(1)).addBooking(bookerId, bookingDto);
     }
 
     @SneakyThrows
@@ -184,7 +152,7 @@ class BookingControllerWebMvcTest {
     void getAllOwnerBooking_whenAllParamsExists_thenReturnList() {
         when(bookingService.getAllUserBookings(owner.getId(), State.ALL.toString(), 0, 1)).thenReturn(List.of(booking));
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/bookings")
+        mockMvc.perform(MockMvcRequestBuilders.get("/bookings/owner")
                         .accept(MediaType.APPLICATION_JSON)
                         .header("X-Sharer-User-Id", owner.getId())
                         .param("state", String.valueOf(State.ALL))
@@ -193,6 +161,6 @@ class BookingControllerWebMvcTest {
                 .andDo(MockMvcResultHandlers.print())
                 .andExpect(MockMvcResultMatchers.status().isOk());
 
-        verify(bookingService, times(1)).getAllUserBookings(owner.getId(), State.ALL.toString(), 0, 1);
+        verify(bookingService, times(1)).getAllOwnerBooking(owner.getId(), State.ALL.toString(), 0, 1);
     }
 }

@@ -108,14 +108,3 @@ class UserHibernateServiceTest {
         verify(userRepository, times(1)).deleteById(userId);
     }
 }
-
-
-
-
-
-
-
-
-
-
-

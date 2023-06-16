@@ -31,21 +31,18 @@ class BookingControllerTest {
     private BookingService bookingService;
     @InjectMocks
     private BookingController bookingController;
-    private LocalDateTime ldt;
     private User user;
     private BookingDto bookingDto;
     private Booking booking;
     private Item item;
     private User owner;
-    private User requester;
-    private ItemRequest itemRequest;
 
     @BeforeEach
     void beforeEach() {
         LocalDateTime now = LocalDateTime.now();
         LocalDate localDate = now.toLocalDate();
         LocalTime localTime = LocalTime.parse(now.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
-        ldt = LocalDateTime.of(localDate, localTime);
+        LocalDateTime ldt = LocalDateTime.of(localDate, localTime);
 
         bookingDto = BookingDto.builder()
                 .id(0)
@@ -56,8 +53,8 @@ class BookingControllerTest {
 
         user = new User(0, "name", "email@yandex.ru");
         owner = new User(1, "owner", "owner@yandex.ru");
-        requester = new User(2, "requester", "requester@yandex.ru");
-        itemRequest = new ItemRequest(0, "requestDescription", ldt, requester);
+        User requester = new User(2, "requester", "requester@yandex.ru");
+        ItemRequest itemRequest = new ItemRequest(0, "requestDescription", ldt, requester);
         item = new Item(3, "itemName", "itemDescription", true, owner, itemRequest);
         booking = BookingMapper.toBooking(user, bookingDto, item);
     }

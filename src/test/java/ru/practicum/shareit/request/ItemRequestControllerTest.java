@@ -9,7 +9,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.item.dto.ItemWithRequestIdDto;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.dto.ItemRequestWithItemsDto;
-import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.service.ItemRequestService;
 import ru.practicum.shareit.user.model.User;
 
@@ -19,8 +18,8 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ItemRequestControllerTest {
@@ -29,10 +28,8 @@ class ItemRequestControllerTest {
     @InjectMocks
     private ItemRequestController itemRequestController;
     private User user;
-    private LocalDateTime ldt;
     private ItemRequestWithItemsDto itemRequestWithItemsDto;
     private ItemRequestDto itemRequestDto;
-    private ItemWithRequestIdDto itemWithRequestIdDto;
 
 
     @BeforeEach
@@ -40,11 +37,12 @@ class ItemRequestControllerTest {
         LocalDateTime now = LocalDateTime.now();
         LocalDate localDate = now.toLocalDate();
         LocalTime localTime = LocalTime.parse(now.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
-        ldt = LocalDateTime.of(localDate, localTime);
+        LocalDateTime ldt = LocalDateTime.of(localDate, localTime);
 
         user = new User(0, "name", "email@yandex.ru");
         itemRequestDto = new ItemRequestDto(0, "requestDescription", ldt, user.getId());
-        itemWithRequestIdDto = new ItemWithRequestIdDto(0, "itemName", "itemDescription", true, 1);
+        ItemWithRequestIdDto itemWithRequestIdDto = new ItemWithRequestIdDto(
+                0, "itemName", "itemDescription", true, 1);
         itemRequestWithItemsDto = new ItemRequestWithItemsDto(0, "requestDescription", ldt, user.getId(),
                 List.of(itemWithRequestIdDto));
     }
