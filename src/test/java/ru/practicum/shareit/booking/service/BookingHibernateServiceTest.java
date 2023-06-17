@@ -56,7 +56,7 @@ class BookingHibernateServiceTest {
         user = new User(0, "name", "user@yandex.ru");
         requester = new User(1, "requesterName", "requester@yandex.ru");
         ItemRequest itemRequest = new ItemRequest(0, "itemN", now, requester);
-        ItemWithRequestDto itemWithRequestDto = new ItemWithRequestDto(0, "itemName", "itemDescription", true,
+        ItemWithRequestDto itemWithRequestDto = new ItemWithRequestDto(1, "itemName", "itemDescription", true,
                 requester.getId());
         item = ItemMapper.toItem(user, itemWithRequestDto, itemRequest);
         LocalDateTime startTime = now.plusHours(1);
@@ -75,7 +75,7 @@ class BookingHibernateServiceTest {
 
         when(userRepository.findById(requester.getId())).thenReturn(Optional.of(requester));
         when(itemRepository.findItemByIdWithOwner(item.getId())).thenReturn(Optional.of(item));
-        lenient().when(bookingRepository.save(BookingMapper.toBooking(requester, bookingDto, item)))
+        when(bookingRepository.save(BookingMapper.toBooking(requester, bookingDto, item)))
                 .thenReturn(booking);
 
         Booking returnedBooking = bookingHibernateService.addBooking(requester.getId(), bookingDto);

@@ -99,12 +99,12 @@ class BookingControllerTest {
     @Test
     void getAllUserBooking() {
         Integer bookerId = user.getId();
-        when(bookingService.getAllOwnerBooking(bookerId, State.ALL.toString(), 0, 1)).thenReturn(List.of(booking));
+        when(bookingService.getAllUserBookings(bookerId, State.ALL.toString(), 0, 1)).thenReturn(List.of(booking));
 
-        List<Booking> returnedBookingList = bookingController.getAllOwnerBooking(bookerId, State.ALL.toString(), 0, 1);
+        List<Booking> returnedBookingList = bookingController.getAllUserBooking(bookerId, State.ALL.toString(), 0, 1);
 
         assertEquals(1, returnedBookingList.size());
-        verify(bookingService, times(1)).getAllOwnerBooking(bookerId, State.ALL.toString(), 0, 1);
+        verify(bookingService, times(1)).getAllUserBookings(bookerId, State.ALL.toString(), 0, 1);
     }
 
     @Test
