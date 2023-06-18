@@ -21,10 +21,6 @@ public class ItemRequestDto {
     @Size(max = 3000, message = "Описание не может быть больше 3000 символов.")
     private String description;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime created;
+    private LocalDateTime created = LocalDateTime.now();
     private Integer requester;
-
-    {
-        created = LocalDateTime.now();
-    }
 }

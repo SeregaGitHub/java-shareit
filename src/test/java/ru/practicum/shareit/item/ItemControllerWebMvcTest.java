@@ -67,7 +67,7 @@ class ItemControllerWebMvcTest {
         commentDto = new CommentDto(0, "someComment", "author", ldt);
         itemDto = new ItemDto(0, "itemName", "itemDescription", true);
         itemWithBookingDto = new ItemWithBookingDto(0, "itemName", "itemDescription", true,
-                null , null, List.of(commentDto));
+                null, null, List.of(commentDto));
     }
 
     @SneakyThrows

@@ -20,9 +20,5 @@ public class CommentDto {
     @Size(max = 3000, groups = {Create.class}, message = "Комментарий не может быть больше 3000 символов.")
     String text;
     String authorName;
-    LocalDateTime created;
-
-    {
-        created = LocalDateTime.now();
-    }
+    LocalDateTime created = LocalDateTime.now();
 }
