@@ -21,6 +21,7 @@ class InMemoryUserStorageTest {
     private UserDto firstUser;
     private UserDto secondUser;
     private UserDto userDto;
+
     @BeforeEach
     void beforeEach() {
         firstUser = UserDto.builder()
