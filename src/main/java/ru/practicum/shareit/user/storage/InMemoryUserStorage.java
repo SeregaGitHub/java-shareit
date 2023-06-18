@@ -62,7 +62,7 @@ public class InMemoryUserStorage implements UserStorage {
         return users.remove(id);
     }
 
-    private User makeUser(User oldUser, UserDto userDto) {
+    private static User makeUser(User oldUser, UserDto userDto) {
         return User.builder()
                 .id(oldUser.getId())
                 .name(userDto.getName() == null ? oldUser.getName() : userDto.getName())
