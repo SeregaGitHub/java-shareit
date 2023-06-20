@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.OwnerNotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemWithBookingDto;
 import ru.practicum.shareit.item.dto.ItemWithRequestDto;
@@ -52,6 +53,14 @@ class ItemServiceImplTest {
         itemWithBookingDto = new ItemWithBookingDto(0, "itemName", "itemDescription", true,
                 null, null, new ArrayList<>());
         item = new Item(0, "itemName", "itemDescription", true, owner, null);
+    }
+
+    @Test
+    void addItem_whenOwnerIsNotExist_whenThrowException() {
+        lenient().when(inMemoryItemStorage.addItem(null, itemWithRequestDto)).thenThrow(
+                new OwnerNotFoundException("OwnerNotFoundException"));
+
+        verify(inMemoryItemStorage, never()).addItem(null, itemWithRequestDto);
     }
 
     @Test

@@ -7,12 +7,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.UserEmailHaveDuplicate;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
 class InMemoryUserStorageTest {
@@ -65,12 +68,27 @@ class InMemoryUserStorageTest {
     }
 
     @Test
+    void addUser_whenUserHaveDuplicateEmail_thenThrowException() {
+        userDto.setEmail(firstUser.getEmail());
+
+        assertThrows(UserEmailHaveDuplicate.class, () -> inMemoryUserStorage.addUser(userDto));
+    }
+
+    @Test
     void addUser() {
         UserDto returnedUser = inMemoryUserStorage.addUser(userDto);
 
         assertEquals(3, returnedUser.getId());
         assertEquals("name", returnedUser.getName());
         assertEquals("user@yandex.ru", returnedUser.getEmail());
+    }
+
+    @Test
+    void updateUser_whenUserNotFound_thenThrowException() {
+        Integer id = firstUser.getId();
+        userDto.setId(id);
+
+        assertThrows(NotFoundException.class, () -> inMemoryUserStorage.updateUser(9999, userDto));
     }
 
     @Test

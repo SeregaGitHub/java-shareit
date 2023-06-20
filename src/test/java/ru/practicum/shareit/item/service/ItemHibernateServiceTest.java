@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import ru.practicum.shareit.booking.bookingUtil.Status;
 import ru.practicum.shareit.booking.dto.BookingForItemDto;
 import ru.practicum.shareit.booking.storage.BookingRepository;
+import ru.practicum.shareit.exception.CommentErrorException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.itemUtil.CommentMapper;
@@ -54,6 +55,7 @@ class ItemHibernateServiceTest {
     private ItemWithBookingDto itemWithBookingDto;
     private CommentDto commentDto;
     private LocalDateTime now;
+    private Comment comment;
     @Captor
     private ArgumentCaptor<Item> itemArgumentCaptor;
 
@@ -70,6 +72,13 @@ class ItemHibernateServiceTest {
         itemWithBookingDto = new ItemWithBookingDto(0, "itemName", "itemDescription", true,
                 null, null, List.of(commentDto));
         item = ItemMapper.toItem(user, itemWithRequestDto, itemRequest);
+        comment = Comment.builder()
+                .id(commentDto.getId())
+                .text(commentDto.getText())
+                .commentUser(user)
+                .itemForComment(item)
+                .created(commentDto.getCreated())
+                .build();
     }
 
     @Test
@@ -199,19 +208,12 @@ class ItemHibernateServiceTest {
     void addComment() {
         Integer userId = user.getId();
         Integer itemId = item.getId();
-        Comment comment = Comment.builder()
-                .id(commentDto.getId())
-                .text(commentDto.getText())
-                .commentUser(user)
-                .itemForComment(item)
-                .created(commentDto.getCreated())
-                .build();
         when(bookingRepository.getBookingDtoByBooker_IdAndItem_Id(userId, itemId, Status.APPROVED,
                 PageRequest.of(0, 1))).thenReturn(List.of(
                         new BookingForItemDto(0, now.minusHours(2), now.minusHours(1), itemId, requester.getId())));
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(itemRepository.findItemByIdWithOwner(itemId)).thenReturn(Optional.of(item));
-        when(commentRepository.save(CommentMapper.toComment(user, item, commentDto, now))).thenReturn(comment);
+        when(commentRepository.save(comment)).thenReturn(comment);
 
 
         CommentDto returnedComment = itemHibernateService.addComment(userId, itemId, commentDto);

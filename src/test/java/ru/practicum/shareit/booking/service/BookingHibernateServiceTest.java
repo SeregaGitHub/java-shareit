@@ -15,7 +15,9 @@ import ru.practicum.shareit.booking.bookingUtil.Status;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.storage.BookingRepository;
+import ru.practicum.shareit.exception.BookingErrorException;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.RequestPaginationException;
 import ru.practicum.shareit.item.dto.ItemWithRequestDto;
 import ru.practicum.shareit.item.itemUtil.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
@@ -24,11 +26,15 @@ import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -45,13 +51,19 @@ class BookingHibernateServiceTest {
     private User requester;
     private Item item;
     private Booking booking;
+    private LocalDateTime now;
+    private LocalDateTime startTimeFuture;
+    private LocalDateTime endTimeFuture;
     private BookingDto bookingDto;
     @Captor
     private ArgumentCaptor<Booking> bookingArgumentCaptor;
 
     @BeforeEach
     void beforeEach() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime localDateTime = LocalDateTime.now();
+        LocalDate localDate = localDateTime.toLocalDate();
+        LocalTime localTime = LocalTime.parse(localDateTime.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
+        now = LocalDateTime.of(localDate, localTime);
 
         user = new User(0, "name", "user@yandex.ru");
         requester = new User(1, "requesterName", "requester@yandex.ru");
@@ -59,19 +71,43 @@ class BookingHibernateServiceTest {
         ItemWithRequestDto itemWithRequestDto = new ItemWithRequestDto(1, "itemName", "itemDescription", true,
                 requester.getId());
         item = ItemMapper.toItem(user, itemWithRequestDto, itemRequest);
-        LocalDateTime startTime = now.plusHours(1);
-        LocalDateTime endTime = now.plusHours(2);
-        booking = new Booking(0, startTime, endTime, item, requester, Status.WAITING);
+        startTimeFuture = now.plusHours(1);
+        endTimeFuture = now.plusHours(2);
+        booking = new Booking(0, startTimeFuture, endTimeFuture, item, requester, Status.WAITING);
         bookingDto = BookingDto.builder()
                 .id(0)
-                .start(startTime)
-                .end(endTime)
+                .start(startTimeFuture)
+                .end(endTimeFuture)
                 .itemId(item.getId())
                 .build();
     }
 
     @Test
-    void addBooking() {
+    void addBooking_whenStartAndEndTimeNotCorrespond_thenThrowException() {
+        bookingDto.setStart(endTimeFuture);
+        bookingDto.setEnd(startTimeFuture);
+
+        assertThrows(BookingErrorException.class,
+                () -> bookingHibernateService.addBooking(requester.getId(), bookingDto));
+
+        verify(bookingRepository, never()).save(booking);
+    }
+
+    @Test
+    void addBooking_whenOwnerTryToBookingHisOwnItem_thenThrowException() {
+
+        when(userRepository.findById(requester.getId())).thenReturn(Optional.of(requester));
+        when(itemRepository.findItemByIdWithOwner(item.getId())).thenReturn(Optional.of(item));
+        item.getOwner().setId(requester.getId());
+
+        assertThrows(NotFoundException.class,
+                () -> bookingHibernateService.addBooking(item.getOwner().getId(), bookingDto));
+
+        verify(bookingRepository, never()).save(booking);
+    }
+
+    @Test
+    void addBooking_whenAllConditionsCorrespond_whenReturnBooking() {
 
         when(userRepository.findById(requester.getId())).thenReturn(Optional.of(requester));
         when(itemRepository.findItemByIdWithOwner(item.getId())).thenReturn(Optional.of(item));
@@ -120,7 +156,7 @@ class BookingHibernateServiceTest {
     }
 
     @Test
-    void getBooking_whenBookingIsExist_whenReturnBooking() {
+    void getBooking_whenBookingIsExist_thenReturnBooking() {
         Integer bookingId = booking.getId();
         when(bookingRepository.getBooking(bookingId)).thenReturn(Optional.of(booking));
 
@@ -131,7 +167,203 @@ class BookingHibernateServiceTest {
     }
 
     @Test
-    void getAllUserBookings() {
+    void getAllUserBookings_whenUserNotFound_thenThrowException() {
+        when(userRepository.findById(9999)).thenThrow(new NotFoundException("new NotFoundException"));
+
+        assertThrows(NotFoundException.class, () -> userRepository.findById(
+                9999));
+
+        verify(bookingRepository, never()).getAllUserBookings(requester.getId(),
+                PageRequest.of(0, 1));
+    }
+
+    @Test
+    void getAllUserBookings_whenRequestPaginationIsNotValid_thenThrowException() {
+        assertThrows(RequestPaginationException.class, () -> bookingHibernateService.getAllUserBookings(
+                requester.getId(), "ALL", -1, -1));
+        verify(bookingRepository, never()).getAllUserBookings(requester.getId(),
+                PageRequest.of(0, 1));
+    }
+
+    @Test
+    void getAllUserBookings_whenStateIsNotCorrespond_thenThrowException() {
+        when(userRepository.findById(requester.getId())).thenReturn(Optional.of(requester));
+
+        assertThrows(BookingErrorException.class, () -> bookingHibernateService.getAllUserBookings(
+                requester.getId(), "wrongState", 0, 1));
+
+        verify(bookingRepository, never()).getAllUserBookings(requester.getId(),
+                PageRequest.of(0, 1));
+    }
+
+    @Test
+    void getAllUserBookings_whenStateIsWAITINGAndPageRequestIs01_thenReturnList() {
+        Integer requesterId = requester.getId();
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(bookingRepository.getUserBookingsByStatus(requesterId, Status.WAITING, PageRequest.of(0, 1)))
+                .thenReturn(List.of(booking));
+
+        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(
+                requesterId, State.WAITING.toString(), 0, 1);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(bookingRepository, times(1)).getUserBookingsByStatus(
+                requesterId, Status.WAITING, PageRequest.of(0, 1));
+    }
+
+    @Test
+    void getAllUserBookings_whenStateIsWAITINGAndThereIsNoPageRequest_thenReturnList() {
+        Integer requesterId = requester.getId();
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(bookingRepository.getUserBookingsByStatus(requesterId, Status.WAITING))
+                .thenReturn(List.of(booking));
+
+        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(requesterId,
+                State.WAITING.toString(), null, null);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(bookingRepository, times(1)).getUserBookingsByStatus(requesterId, Status.WAITING);
+    }
+
+    @Test
+    void getAllUserBookings_whenStateIsREJECTEDAndPageRequestIs01_thenReturnList() {
+        booking.setStatus(Status.REJECTED);
+        Integer requesterId = requester.getId();
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(bookingRepository.getUserBookingsByStatus(requesterId, Status.REJECTED, PageRequest.of(0, 1)))
+                .thenReturn(List.of(booking));
+
+        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(
+                requesterId, State.REJECTED.toString(), 0, 1);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(bookingRepository, times(1)).getUserBookingsByStatus(
+                requesterId, Status.REJECTED, PageRequest.of(0, 1));
+    }
+
+    @Test
+    void getAllUserBookings_whenStateIsREJECTEDAndThereIsNoPageRequest_thenReturnList() {
+        booking.setStatus(Status.REJECTED);
+        Integer requesterId = requester.getId();
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(bookingRepository.getUserBookingsByStatus(requesterId, Status.REJECTED))
+                .thenReturn(List.of(booking));
+
+        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(requesterId,
+                State.REJECTED.toString(), null, null);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(bookingRepository, times(1)).getUserBookingsByStatus(requesterId, Status.REJECTED);
+    }
+
+    @Test
+    void getAllUserBookings_whenStateIsFUTUREAndPageRequestIs01_thenReturnList() {
+        Integer requesterId = requester.getId();
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(bookingRepository.getUserBookingInFuture(requesterId, now, PageRequest.of(0, 1)))
+                .thenReturn(List.of(booking));
+
+        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(
+                requesterId, State.FUTURE.toString(), 0, 1);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(bookingRepository, times(1)).getUserBookingInFuture(
+                requesterId, now, PageRequest.of(0, 1));
+    }
+
+    @Test
+    void getAllUserBookings_whenStateIsFUTUREAndThereIsNoPageRequest_thenReturnList() {
+        Integer requesterId = requester.getId();
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(bookingRepository.getUserBookingInFuture(requesterId, now))
+                .thenReturn(List.of(booking));
+
+        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(
+                requesterId, State.FUTURE.toString(), null, null);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(bookingRepository, times(1)).getUserBookingInFuture(
+                requesterId, now);
+    }
+
+    @Test
+    void getAllUserBookings_whenStateIsPASTAndPageRequestIs01_thenReturnList() {
+        booking.setStart(now.minusHours(2));
+        booking.setEnd(now.minusHours(1));
+        Integer requesterId = requester.getId();
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(bookingRepository.getUserBookingInPast(requesterId, now, PageRequest.of(0, 1)))
+                .thenReturn(List.of(booking));
+
+        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(
+                requesterId, State.PAST.toString(), 0, 1);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(bookingRepository, times(1)).getUserBookingInPast(
+                requesterId, now, PageRequest.of(0, 1));
+    }
+
+    @Test
+    void getAllUserBookings_whenStateIsPASTAndThereIsNoPageRequest_thenReturnList() {
+        booking.setStart(now.minusHours(2));
+        booking.setEnd(now.minusHours(1));
+        Integer requesterId = requester.getId();
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(bookingRepository.getUserBookingInPast(requesterId, now))
+                .thenReturn(List.of(booking));
+
+        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(
+                requesterId, State.PAST.toString(), null, null);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(bookingRepository, times(1)).getUserBookingInPast(
+                requesterId, now);
+    }
+
+    @Test
+    void getAllUserBookings_whenStateIsCURRENTAndPageRequestIs01_thenReturnList() {
+        booking.setStart(now.minusHours(2));
+        Integer requesterId = requester.getId();
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(bookingRepository.getUserBookingInCurrent(requesterId, now, PageRequest.of(0, 1)))
+                .thenReturn(List.of(booking));
+
+        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(
+                requesterId, State.CURRENT.toString(), 0, 1);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(bookingRepository, times(1)).getUserBookingInCurrent(
+                requesterId, now, PageRequest.of(0, 1));
+    }
+
+    @Test
+    void getAllUserBookings_whenStateIsCURRENTAndThereIsNoPageRequest_thenReturnList() {
+        booking.setStart(now.minusHours(2));
+        Integer requesterId = requester.getId();
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(bookingRepository.getUserBookingInCurrent(requesterId, now))
+                .thenReturn(List.of(booking));
+
+        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(
+                requesterId, State.CURRENT.toString(), null, null);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(bookingRepository, times(1)).getUserBookingInCurrent(
+                requesterId, now);
+    }
+
+    @Test
+    void getAllUserBookings_whenStateIsALLAndPageRequestIs01_thenReturnList() {
         Integer requesterId = requester.getId();
         when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
         when(bookingRepository.getAllUserBookings(requesterId, PageRequest.of(0, 1)))
@@ -144,6 +376,21 @@ class BookingHibernateServiceTest {
         verify(userRepository, times(1)).findById(requesterId);
         verify(bookingRepository, times(1)).getAllUserBookings(
                 requesterId, PageRequest.of(0, 1));
+    }
+
+    @Test
+    void getAllUserBookings_whenStateIsALLAndThereIsNoPageRequest_thenReturnList() {
+        Integer requesterId = requester.getId();
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(bookingRepository.getAllUserBookings(requesterId))
+                .thenReturn(List.of(booking));
+
+        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(requesterId,
+                State.ALL.toString(), null, null);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(bookingRepository, times(1)).getAllUserBookings(requesterId);
     }
 
     @Test

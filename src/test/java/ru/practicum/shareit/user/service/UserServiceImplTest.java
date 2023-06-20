@@ -92,6 +92,16 @@ class UserServiceImplTest {
     }
 
     @Test
+    void deleteUser_whenUserNotFound_thenThrowException() {
+        Integer userId = user.getId();
+        when(inMemoryUserStorage.deleteUser(userId)).thenReturn(null);
+
+        assertThrows(NotFoundException.class, () -> userServiceImpl.deleteUser(userId));
+
+        verify(inMemoryUserStorage, times(1)).deleteUser(userId);
+    }
+
+    @Test
     void deleteUser() {
         Integer userId = user.getId();
         when(inMemoryUserStorage.deleteUser(userId)).thenReturn(user);
