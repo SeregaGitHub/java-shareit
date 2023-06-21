@@ -25,6 +25,7 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -158,7 +159,7 @@ class ItemHibernateServiceTest {
     }
 
     @Test
-    void getItems() {
+    void getItems_whenPageRequestIs01_thenReturnList() {
         Integer userId = user.getId();
         when(itemRepository.findItemsShotByOwner_Id(userId, PageRequest.of(0, 1)))
                 .thenReturn(List.of(new ItemShot() {
@@ -190,7 +191,39 @@ class ItemHibernateServiceTest {
     }
 
     @Test
-    void getItemsBySearch() {
+    void getItems_whenThereIsNoPageRequest_thenReturnList() {
+        Integer userId = user.getId();
+        when(itemRepository.findItemsShotByOwner_Id(userId))
+                .thenReturn(List.of(new ItemShot() {
+                    @Override
+                    public Integer getId() {
+                        return 0;
+                    }
+
+                    @Override
+                    public String getName() {
+                        return "itemName";
+                    }
+
+                    @Override
+                    public String getDescription() {
+                        return "itemDescription";
+                    }
+
+                    @Override
+                    public Boolean getAvailable() {
+                        return true;
+                    }
+                }));
+
+        List<ItemWithBookingDto> returnedList = itemHibernateService.getItems(userId, null, null);
+
+        assertEquals(1, returnedList.size());
+        verify(itemRepository, times(1)).findItemsShotByOwner_Id(userId);
+    }
+
+    @Test
+    void getItemsBySearch_whenPageRequestIs01_thenReturnList() {
         when(itemRepository.findByAvailableTrueAndNameIgnoreCaseOrAvailableTrueAndDescriptionIgnoreCaseContaining(
                 "itemN", "itemN", PageRequest.of(0, 1)
         )).thenReturn(List.of(item));
@@ -201,6 +234,30 @@ class ItemHibernateServiceTest {
         verify(itemRepository, times(1)).findByAvailableTrueAndNameIgnoreCaseOrAvailableTrueAndDescriptionIgnoreCaseContaining(
                 "itemN", "itemN", PageRequest.of(0, 1)
         );
+    }
+
+    @Test
+    void getItemsBySearch_whenThereIsNoPageRequest_thenReturnList() {
+        when(itemRepository.findByAvailableTrueAndNameIgnoreCaseOrAvailableTrueAndDescriptionIgnoreCaseContaining(
+                "itemN", "itemN")).thenReturn(List.of(item));
+
+        List<ItemDto> returnedList = itemHibernateService.getItemsBySearch("itemN", null, null);
+
+        assertEquals(1, returnedList.size());
+        verify(itemRepository, times(1)).findByAvailableTrueAndNameIgnoreCaseOrAvailableTrueAndDescriptionIgnoreCaseContaining(
+                "itemN", "itemN");
+    }
+
+    @Test
+    void getItemsBySearch_whenTextIsBlank_thenReturnList() {
+        when(itemRepository.findByAvailableTrueAndNameIgnoreCaseOrAvailableTrueAndDescriptionIgnoreCaseContaining(
+                "itemN", "itemN")).thenReturn(new ArrayList<>());
+
+        List<ItemDto> returnedList = itemHibernateService.getItemsBySearch("itemN", null, null);
+
+        assertEquals(0, returnedList.size());
+        verify(itemRepository, times(1)).findByAvailableTrueAndNameIgnoreCaseOrAvailableTrueAndDescriptionIgnoreCaseContaining(
+                "itemN", "itemN");
     }
 
     @Test
