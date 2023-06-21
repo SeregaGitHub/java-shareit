@@ -64,9 +64,11 @@ class ItemRequestHibernateServiceTest {
     @Test
     void addItemRequest_whenOwnerNotFound_whenThrowException() {
         Integer requesterId = requester.getId();
-        when(userRepository.findById(requesterId)).thenThrow(new NotFoundException("NotFoundException"));
+        when(userRepository.findById(requesterId)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> itemRequestHibernateService.addItemRequest(requesterId, itemRequestDto));
+        NotFoundException notFoundException = assertThrows(NotFoundException.class,
+                () -> itemRequestHibernateService.addItemRequest(requesterId, itemRequestDto));
+        assertEquals("User with Id=" + requesterId + " does not exist", notFoundException.getMessage());
 
         verify(userRepository, times(1)).findById(requesterId);
         verify(itemRequestRepository, never()).save(itemRequest);
@@ -86,7 +88,20 @@ class ItemRequestHibernateServiceTest {
     }
 
     @Test
-    void getItemRequestsList() {
+    void getItemRequestsList_whenUserDoesNotExist_whenThrowException() {
+        Integer requesterId = requester.getId();
+        when(userRepository.findById(requesterId)).thenReturn(Optional.empty());
+
+        NotFoundException notFoundException = assertThrows(NotFoundException.class,
+                () -> itemRequestHibernateService.getItemRequestsList(requesterId));
+        assertEquals("User with Id=" + requesterId + " - does not exist", notFoundException.getMessage());
+
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(itemRequestRepository, never()).getItemRequestsOfUserList(requesterId);
+    }
+
+    @Test
+    void getItemRequestsList_whenUserWasFound_thenReturnList() {
         Integer requesterId = requester.getId();
         when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
         when(itemRequestRepository.getItemRequestsOfUserList(requesterId)).thenReturn(List.of(itemRequestDto));
@@ -99,7 +114,20 @@ class ItemRequestHibernateServiceTest {
     }
 
     @Test
-    void getAllItemRequestsList() {
+    void getAllItemRequestsList_whenUserDoesNotExist_whenThrowException() {
+        Integer requesterId = requester.getId();
+        when(userRepository.findById(requesterId)).thenReturn(Optional.empty());
+
+        NotFoundException notFoundException = assertThrows(NotFoundException.class,
+                () -> itemRequestHibernateService.getAllItemRequestsList(requesterId, null, null));
+        assertEquals("User with Id=" + requesterId + " - does not exist", notFoundException.getMessage());
+
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(itemRequestRepository, never()).getItemRequestsList(requesterId);
+    }
+
+    @Test
+    void getAllItemRequestsList_whenUserWasFound_thenReturnList() {
         Integer userId = user.getId();
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
         when(itemRequestRepository.getItemRequestsList(userId, PageRequest.of(0, 1)))
@@ -115,7 +143,7 @@ class ItemRequestHibernateServiceTest {
     }
 
     @Test
-    void getItemRequestById() {
+    void getItemRequestById_whenUserAndItemRequestAreExist_thenReturnList() {
         Integer userId = user.getId();
         Integer requestId = itemRequestDto.getId();
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -128,5 +156,36 @@ class ItemRequestHibernateServiceTest {
         verify(userRepository, times(1)).findById(userId);
         verify(itemRequestRepository, times(1)).findById(requestId);
         verify(itemRepository, times(1)).getItemsWithRequestDtoList(Set.of(requestId));
+    }
+
+    @Test
+    void getItemRequestById_whenUserWasNotFound_thenThrowException() {
+        Integer userId = user.getId();
+        Integer requestId = itemRequestDto.getId();
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        NotFoundException notFoundException = assertThrows(NotFoundException.class,
+                () -> itemRequestHibernateService.getItemRequestById(userId, requestId));
+        assertEquals("User with Id=" + userId + " - does not exist", notFoundException.getMessage());
+
+        verify(userRepository, times(1)).findById(userId);
+        verify(itemRequestRepository, never()).findById(requestId);
+        verify(itemRepository, never()).getItemsWithRequestDtoList(Set.of(requestId));
+    }
+
+    @Test
+    void getItemRequestById_whenItemRequestWasNotFound_thenThrowException() {
+        Integer userId = user.getId();
+        Integer requestId = itemRequestDto.getId();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(itemRequestRepository.findById(requestId)).thenReturn(Optional.empty());
+
+        NotFoundException notFoundException = assertThrows(NotFoundException.class,
+                () -> itemRequestHibernateService.getItemRequestById(userId, requestId));
+        assertEquals("Item request with Id=" + requestId + " - does not exist", notFoundException.getMessage());
+
+        verify(userRepository, times(1)).findById(userId);
+        verify(itemRequestRepository, times(1)).findById(requestId);
+        verify(itemRepository, never()).getItemsWithRequestDtoList(Set.of(requestId));
     }
 }

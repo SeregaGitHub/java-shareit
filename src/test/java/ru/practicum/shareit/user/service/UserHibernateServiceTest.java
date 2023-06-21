@@ -45,8 +45,7 @@ class UserHibernateServiceTest {
     @Test
     void getUser_whenUserNotFound_thenThrowNewNotFoundException() {
         Integer userId = user.getId();
-        when(userRepository.findById(userId)).thenThrow(
-                new NotFoundException("User with Id=" + userId + " - does not exist"));
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         NotFoundException notFoundException = assertThrows(
                 NotFoundException.class, () -> userHibernateService.getUser(userId));

@@ -147,11 +147,13 @@ class BookingHibernateServiceTest {
 
     @Test
     void setNewStatus_whenBookingNotFound_thenReturnNotFoundException() {
-        when(bookingRepository.getBooking(booking.getId())).thenThrow(new NotFoundException("NotFoundException"));
+        when(bookingRepository.getBooking(booking.getId())).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> bookingHibernateService.setNewStatus(
+        NotFoundException notFoundException = assertThrows(NotFoundException.class,
+                () -> bookingHibernateService.setNewStatus(
                 booking.getItem().getOwner().getId(), booking.getId(), true));
 
+        assertEquals("Booking with Id=" + booking.getId() + " does not exist", notFoundException.getMessage());
         verify(bookingRepository, times(1)).getBooking(booking.getId());
         verify(bookingRepository, never()).save(booking);
     }
@@ -170,11 +172,13 @@ class BookingHibernateServiceTest {
 
     @Test
     void getBooking_whenBookingNotFound_thenReturnNotFoundException() {
-        when(bookingRepository.getBooking(booking.getId())).thenThrow(new NotFoundException("NotFoundException"));
+        when(bookingRepository.getBooking(booking.getId())).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> bookingHibernateService.setNewStatus(
+        NotFoundException notFoundException = assertThrows(NotFoundException.class,
+                () -> bookingHibernateService.setNewStatus(
                 booking.getItem().getOwner().getId(), booking.getId(), true));
 
+        assertEquals("Booking with Id=" + booking.getId() + " does not exist", notFoundException.getMessage());
         verify(bookingRepository, never()).save(booking);
     }
 

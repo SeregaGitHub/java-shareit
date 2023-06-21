@@ -83,9 +83,12 @@ class ItemHibernateServiceTest {
     @Test
     void addItem_whenOwnerNotFound_whenThrowException() {
         Integer userId = item.getOwner().getId();
-        when(userRepository.findById(userId)).thenThrow(new NotFoundException("NotFoundException"));
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> itemHibernateService.addItem(userId, itemWithRequestDto));
+        NotFoundException notFoundException = assertThrows(NotFoundException.class,
+                () -> itemHibernateService.addItem(userId, itemWithRequestDto));
+
+        assertEquals("User with Id=" + userId + " - does not exist", notFoundException.getMessage());
         verify(userRepository, times(1)).findById(userId);
         verify(itemRepository, never()).save(item);
     }
@@ -112,10 +115,13 @@ class ItemHibernateServiceTest {
 
     @Test
     void updateItem_whenOwnerNotFound_whenThrowException() {
-        lenient().when(itemRepository.save(item)).thenThrow(new NotFoundException("NotFoundException"));
+        Integer itemId = itemDto.getId();
+        when(itemRepository.findById(itemId)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> itemHibernateService.updateItem(user.getId(), itemDto, itemDto.getId()));
+        NotFoundException notFoundException = assertThrows(NotFoundException.class,
+                () -> itemHibernateService.updateItem(user.getId(), itemDto, itemDto.getId()));
 
+        assertEquals("Item with Id=" + itemId + " - does not exist", notFoundException.getMessage());
         verify(itemRepository, times(1)).findById(itemDto.getId());
         verify(itemRepository, never()).save(item);
     }
