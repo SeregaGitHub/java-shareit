@@ -58,7 +58,7 @@ class ItemServiceImplTest {
     @Test
     void addItem_whenOwnerIsNotExist_whenThrowException() {
         lenient().when(inMemoryItemStorage.addItem(null, itemWithRequestDto)).thenThrow(
-                new OwnerNotFoundException("OwnerNotFoundException"));
+                new OwnerNotFoundException("Request do not contain owner of the item"));
 
         verify(inMemoryItemStorage, never()).addItem(null, itemWithRequestDto);
     }

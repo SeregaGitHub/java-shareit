@@ -31,10 +31,6 @@ public class ItemWithRequestDto extends ItemDto {
         return requestId;
     }
 
-    public void setRequestId(Integer requestId) {
-        this.requestId = requestId;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -47,12 +43,5 @@ public class ItemWithRequestDto extends ItemDto {
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), requestId);
-    }
-
-    @Override
-    public String toString() {
-        return "ItemWithRequestDto{" +
-                "requestId=" + requestId +
-                "} " + super.toString();
     }
 }

@@ -96,6 +96,16 @@ class BookingHibernateServiceTest {
     }
 
     @Test
+    void addBooking_whenItemIdIsNotPositive_thenThrowException() {
+        bookingDto.setItemId(-1);
+
+        assertThrows(BookingErrorException.class,
+                () -> bookingHibernateService.addBooking(requester.getId(), bookingDto));
+
+        verify(bookingRepository, never()).save(booking);
+    }
+
+    @Test
     void addBooking_whenStartAndEndTimeNotCorrespond_thenThrowException() {
         bookingDto.setStart(endTimeFuture);
         bookingDto.setEnd(startTimeFuture);
