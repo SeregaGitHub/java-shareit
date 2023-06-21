@@ -26,10 +26,10 @@ import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
 
-import java.time.LocalDate;
+import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,6 +45,8 @@ class BookingHibernateServiceTest {
     private UserRepository userRepository;
     @Mock
     private BookingRepository bookingRepository;
+    @Mock
+    private Clock clock;
     @InjectMocks
     private BookingHibernateService bookingHibernateService;
     private User user;
@@ -55,16 +57,27 @@ class BookingHibernateServiceTest {
     private LocalDateTime startTimeFuture;
     private LocalDateTime endTimeFuture;
     private BookingDto bookingDto;
+    private static final ZonedDateTime NOW_ZDT = ZonedDateTime.of(
+            2023,
+            10,
+            10,
+            10,
+            10,
+            10,
+            0,
+            ZoneId.of("UTC")
+    );
     @Captor
     private ArgumentCaptor<Booking> bookingArgumentCaptor;
 
     @BeforeEach
     void beforeEach() {
-        LocalDateTime localDateTime = LocalDateTime.now();
-        LocalDate localDate = localDateTime.toLocalDate();
-        LocalTime localTime = LocalTime.parse(localDateTime.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
-        now = LocalDateTime.of(localDate, localTime);
-
+        now = LocalDateTime.of(2023,
+                10,
+                10,
+                10,
+                10,
+                10);
         user = new User(0, "name", "user@yandex.ru");
         requester = new User(1, "requesterName", "requester@yandex.ru");
         ItemRequest itemRequest = new ItemRequest(0, "itemN", now, requester);
@@ -168,10 +181,10 @@ class BookingHibernateServiceTest {
 
     @Test
     void getAllUserBookings_whenUserNotFound_thenThrowException() {
-        when(userRepository.findById(9999)).thenThrow(new NotFoundException("new NotFoundException"));
+        when(userRepository.findById(anyInt())).thenThrow(new NotFoundException("new NotFoundException"));
 
         assertThrows(NotFoundException.class, () -> userRepository.findById(
-                9999));
+                anyInt()));
 
         verify(bookingRepository, never()).getAllUserBookings(requester.getId(),
                 PageRequest.of(0, 1));
@@ -180,7 +193,7 @@ class BookingHibernateServiceTest {
     @Test
     void getAllUserBookings_whenRequestPaginationIsNotValid_thenThrowException() {
         assertThrows(RequestPaginationException.class, () -> bookingHibernateService.getAllUserBookings(
-                requester.getId(), "ALL", -1, -1));
+                requester.getId(), State.ALL.toString(), -1, -1));
         verify(bookingRepository, never()).getAllUserBookings(requester.getId(),
                 PageRequest.of(0, 1));
     }
@@ -199,6 +212,8 @@ class BookingHibernateServiceTest {
     @Test
     void getAllUserBookings_whenStateIsWAITINGAndPageRequestIs01_thenReturnList() {
         Integer requesterId = requester.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
         when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
         when(bookingRepository.getUserBookingsByStatus(requesterId, Status.WAITING, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
@@ -215,6 +230,8 @@ class BookingHibernateServiceTest {
     @Test
     void getAllUserBookings_whenStateIsWAITINGAndThereIsNoPageRequest_thenReturnList() {
         Integer requesterId = requester.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
         when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
         when(bookingRepository.getUserBookingsByStatus(requesterId, Status.WAITING))
                 .thenReturn(List.of(booking));
@@ -231,6 +248,8 @@ class BookingHibernateServiceTest {
     void getAllUserBookings_whenStateIsREJECTEDAndPageRequestIs01_thenReturnList() {
         booking.setStatus(Status.REJECTED);
         Integer requesterId = requester.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
         when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
         when(bookingRepository.getUserBookingsByStatus(requesterId, Status.REJECTED, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
@@ -248,6 +267,8 @@ class BookingHibernateServiceTest {
     void getAllUserBookings_whenStateIsREJECTEDAndThereIsNoPageRequest_thenReturnList() {
         booking.setStatus(Status.REJECTED);
         Integer requesterId = requester.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
         when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
         when(bookingRepository.getUserBookingsByStatus(requesterId, Status.REJECTED))
                 .thenReturn(List.of(booking));
@@ -263,6 +284,8 @@ class BookingHibernateServiceTest {
     @Test
     void getAllUserBookings_whenStateIsFUTUREAndPageRequestIs01_thenReturnList() {
         Integer requesterId = requester.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
         when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
         when(bookingRepository.getUserBookingInFuture(requesterId, now, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
@@ -279,6 +302,8 @@ class BookingHibernateServiceTest {
     @Test
     void getAllUserBookings_whenStateIsFUTUREAndThereIsNoPageRequest_thenReturnList() {
         Integer requesterId = requester.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
         when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
         when(bookingRepository.getUserBookingInFuture(requesterId, now))
                 .thenReturn(List.of(booking));
@@ -297,6 +322,8 @@ class BookingHibernateServiceTest {
         booking.setStart(now.minusHours(2));
         booking.setEnd(now.minusHours(1));
         Integer requesterId = requester.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
         when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
         when(bookingRepository.getUserBookingInPast(requesterId, now, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
@@ -315,6 +342,8 @@ class BookingHibernateServiceTest {
         booking.setStart(now.minusHours(2));
         booking.setEnd(now.minusHours(1));
         Integer requesterId = requester.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
         when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
         when(bookingRepository.getUserBookingInPast(requesterId, now))
                 .thenReturn(List.of(booking));
@@ -332,6 +361,8 @@ class BookingHibernateServiceTest {
     void getAllUserBookings_whenStateIsCURRENTAndPageRequestIs01_thenReturnList() {
         booking.setStart(now.minusHours(2));
         Integer requesterId = requester.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
         when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
         when(bookingRepository.getUserBookingInCurrent(requesterId, now, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
@@ -349,6 +380,8 @@ class BookingHibernateServiceTest {
     void getAllUserBookings_whenStateIsCURRENTAndThereIsNoPageRequest_thenReturnList() {
         booking.setStart(now.minusHours(2));
         Integer requesterId = requester.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
         when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
         when(bookingRepository.getUserBookingInCurrent(requesterId, now))
                 .thenReturn(List.of(booking));
@@ -365,6 +398,8 @@ class BookingHibernateServiceTest {
     @Test
     void getAllUserBookings_whenStateIsALLAndPageRequestIs01_thenReturnList() {
         Integer requesterId = requester.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
         when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
         when(bookingRepository.getAllUserBookings(requesterId, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
@@ -381,6 +416,8 @@ class BookingHibernateServiceTest {
     @Test
     void getAllUserBookings_whenStateIsALLAndThereIsNoPageRequest_thenReturnList() {
         Integer requesterId = requester.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
         when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
         when(bookingRepository.getAllUserBookings(requesterId))
                 .thenReturn(List.of(booking));
@@ -394,18 +431,255 @@ class BookingHibernateServiceTest {
     }
 
     @Test
-    void getAllOwnerBooking() {
-        Integer ownerId = user.getId();
-        when(userRepository.findById(ownerId)).thenReturn(Optional.of(user));
-        when(bookingRepository.getAllUserBookings(ownerId, PageRequest.of(0, 1)))
+    void getAllOwnerBookings_whenUserNotFound_thenThrowException() {
+        when(userRepository.findById(anyInt())).thenThrow(
+                new NotFoundException("NotFoundException"));
+
+        assertThrows(NotFoundException.class, () -> userRepository.findById(
+                anyInt()));
+
+        verify(bookingRepository, never()).getAllOwnerBookings(requester.getId(),
+                PageRequest.of(0, 1));
+    }
+
+    @Test
+    void getAllOwnerBookings_whenRequestPaginationIsNotValid_thenThrowException() {
+        assertThrows(RequestPaginationException.class, () -> bookingHibernateService.getAllOwnerBooking(
+                requester.getId(), State.ALL.toString(), -1, -1));
+        verify(bookingRepository, never()).getAllOwnerBookings(requester.getId(),
+                PageRequest.of(0, 1));
+    }
+
+    @Test
+    void getAllOwnerBookings_whenStateIsNotCorrespond_thenThrowException() {
+        when(userRepository.findById(requester.getId())).thenReturn(Optional.of(requester));
+
+        assertThrows(BookingErrorException.class, () -> bookingHibernateService.getAllOwnerBooking(
+                requester.getId(), "wrongState", 0, 1));
+
+        verify(bookingRepository, never()).getAllOwnerBookings(requester.getId(),
+                PageRequest.of(0, 1));
+    }
+
+    @Test
+    void getAllOwnerBookings_whenStateIsWAITINGAndPageRequestIs01_thenReturnList() {
+        Integer requesterId = requester.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(bookingRepository.getOwnerBookingsByStatus(requesterId, Status.WAITING, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(
+        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(
+                requesterId, State.WAITING.toString(), 0, 1);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(bookingRepository, times(1)).getOwnerBookingsByStatus(
+                requesterId, Status.WAITING, PageRequest.of(0, 1));
+    }
+
+    @Test
+    void getAllOwnerBookings_whenStateIsWAITINGAndThereIsNoPageRequest_thenReturnList() {
+        Integer requesterId = requester.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(bookingRepository.getOwnerBookingsByStatus(requesterId, Status.WAITING))
+                .thenReturn(List.of(booking));
+
+        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(requesterId,
+                State.WAITING.toString(), null, null);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(bookingRepository, times(1)).getOwnerBookingsByStatus(requesterId, Status.WAITING);
+    }
+
+    @Test
+    void getAllOwnerBookings_whenStateIsREJECTEDAndPageRequestIs01_thenReturnList() {
+        booking.setStatus(Status.REJECTED);
+        Integer requesterId = requester.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(bookingRepository.getOwnerBookingsByStatus(requesterId, Status.REJECTED, PageRequest.of(0, 1)))
+                .thenReturn(List.of(booking));
+
+        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(
+                requesterId, State.REJECTED.toString(), 0, 1);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(bookingRepository, times(1)).getOwnerBookingsByStatus(
+                requesterId, Status.REJECTED, PageRequest.of(0, 1));
+    }
+
+    @Test
+    void getAllOwnerBookings_whenStateIsREJECTEDAndThereIsNoPageRequest_thenReturnList() {
+        booking.setStatus(Status.REJECTED);
+        Integer requesterId = requester.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(bookingRepository.getOwnerBookingsByStatus(requesterId, Status.REJECTED))
+                .thenReturn(List.of(booking));
+
+        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(requesterId,
+                State.REJECTED.toString(), null, null);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(bookingRepository, times(1)).getOwnerBookingsByStatus(requesterId, Status.REJECTED);
+    }
+
+    @Test
+    void getAllOwnerBookings_whenStateIsFUTUREAndPageRequestIs01_thenReturnList() {
+        Integer requesterId = requester.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(bookingRepository.getOwnerBookingInFuture(requesterId, now, PageRequest.of(0, 1)))
+                .thenReturn(List.of(booking));
+
+        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(
+                requesterId, State.FUTURE.toString(), 0, 1);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(bookingRepository, times(1)).getOwnerBookingInFuture(
+                requesterId, now, PageRequest.of(0, 1));
+    }
+
+    @Test
+    void getAllOwnerBookings_whenStateIsFUTUREAndThereIsNoPageRequest_thenReturnList() {
+        Integer requesterId = requester.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(bookingRepository.getOwnerBookingInFuture(requesterId, now))
+                .thenReturn(List.of(booking));
+
+        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(
+                requesterId, State.FUTURE.toString(), null, null);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(bookingRepository, times(1)).getOwnerBookingInFuture(
+                requesterId, now);
+    }
+
+    @Test
+    void getAllOwnerBookings_whenStateIsPASTAndPageRequestIs01_thenReturnList() {
+        booking.setStart(now.minusHours(2));
+        booking.setEnd(now.minusHours(1));
+        Integer requesterId = requester.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(bookingRepository.getOwnerBookingInPast(requesterId, now, PageRequest.of(0, 1)))
+                .thenReturn(List.of(booking));
+
+        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(
+                requesterId, State.PAST.toString(), 0, 1);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(bookingRepository, times(1)).getOwnerBookingInPast(
+                requesterId, now, PageRequest.of(0, 1));
+    }
+
+    @Test
+    void getAllOwnerBookings_whenStateIsPASTAndThereIsNoPageRequest_thenReturnList() {
+        booking.setStart(now.minusHours(2));
+        booking.setEnd(now.minusHours(1));
+        Integer requesterId = requester.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(bookingRepository.getOwnerBookingInPast(requesterId, now))
+                .thenReturn(List.of(booking));
+
+        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(
+                requesterId, State.PAST.toString(), null, null);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(bookingRepository, times(1)).getOwnerBookingInPast(
+                requesterId, now);
+    }
+
+    @Test
+    void getAllOwnerBookings_whenStateIsCURRENTAndPageRequestIs01_thenReturnList() {
+        booking.setStart(now.minusHours(2));
+        Integer requesterId = requester.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(bookingRepository.getOwnerBookingInCurrent(requesterId, now, PageRequest.of(0, 1)))
+                .thenReturn(List.of(booking));
+
+        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(
+                requesterId, State.CURRENT.toString(), 0, 1);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(bookingRepository, times(1)).getOwnerBookingInCurrent(
+                requesterId, now, PageRequest.of(0, 1));
+    }
+
+    @Test
+    void getAllOwnerBookings_whenStateIsCURRENTAndThereIsNoPageRequest_thenReturnList() {
+        booking.setStart(now.minusHours(2));
+        Integer requesterId = requester.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
+        when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
+        when(bookingRepository.getOwnerBookingInCurrent(requesterId, now))
+                .thenReturn(List.of(booking));
+
+        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(
+                requesterId, State.CURRENT.toString(), null, null);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(requesterId);
+        verify(bookingRepository, times(1)).getOwnerBookingInCurrent(
+                requesterId, now);
+    }
+
+    @Test
+    void getAllOwnerBooking_whenStateIsALLAndPageRequestIs01_thenReturnList() {
+        Integer ownerId = user.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(user));
+        when(bookingRepository.getAllOwnerBookings(ownerId, PageRequest.of(0, 1)))
+                .thenReturn(List.of(booking));
+
+        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(
                 ownerId, State.ALL.toString(), 0, 1);
 
         assertEquals(1, returnedList.size());
         verify(userRepository, times(1)).findById(ownerId);
-        verify(bookingRepository, times(1)).getAllUserBookings(
+        verify(bookingRepository, times(1)).getAllOwnerBookings(
                 ownerId, PageRequest.of(0, 1));
+    }
+
+    @Test
+    void getAllOwnerBooking_whenStateIsALLAndThereIsNoPageRequest_thenReturnList() {
+        Integer ownerId = user.getId();
+        when(clock.getZone()).thenReturn(NOW_ZDT.getZone());
+        when(clock.instant()).thenReturn(NOW_ZDT.toInstant());
+        when(userRepository.findById(ownerId)).thenReturn(Optional.of(user));
+        when(bookingRepository.getAllOwnerBookings(ownerId))
+                .thenReturn(List.of(booking));
+
+        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(
+                ownerId, State.ALL.toString(), null, null);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(ownerId);
+        verify(bookingRepository, times(1)).getAllOwnerBookings(
+                ownerId);
     }
 }

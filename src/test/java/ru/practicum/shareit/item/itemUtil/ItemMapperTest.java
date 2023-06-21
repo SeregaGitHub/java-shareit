@@ -22,6 +22,7 @@ class ItemMapperTest {
     private ItemWithBookingDto itemWithBookingDto;
     private ItemRequest itemRequest;
     private CommentDto commentDto;
+    private BookingForItemDto bookingForItemDto;
     private LocalDateTime now;
 
     @BeforeEach
@@ -37,7 +38,7 @@ class ItemMapperTest {
         itemWithBookingDto = new ItemWithBookingDto(0, "itemName", "itemDescription", true,
                 null, null, List.of(commentDto));
         item = ItemMapper.toItem(user, itemWithRequestDto, itemRequest);
-        BookingForItemDto bookingForItemDto = BookingForItemDto.builder()
+        bookingForItemDto = BookingForItemDto.builder()
                 .id(1)
                 .startTime(now.plusHours(1))
                 .endTime(now.plusHours(2))

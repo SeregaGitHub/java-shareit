@@ -12,10 +12,8 @@ import org.springframework.data.domain.PageRequest;
 import ru.practicum.shareit.booking.bookingUtil.Status;
 import ru.practicum.shareit.booking.dto.BookingForItemDto;
 import ru.practicum.shareit.booking.storage.BookingRepository;
-import ru.practicum.shareit.exception.CommentErrorException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.*;
-import ru.practicum.shareit.item.itemUtil.CommentMapper;
 import ru.practicum.shareit.item.itemUtil.ItemMapper;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
@@ -83,7 +81,7 @@ class ItemHibernateServiceTest {
 
     @Test
     void addItem_whenOwnerNotFound_whenThrowException() {
-        Integer userId = user.getId();
+        Integer userId = item.getOwner().getId();
         when(userRepository.findById(userId)).thenThrow(new NotFoundException("NotFoundException"));
 
         assertThrows(NotFoundException.class, () -> itemHibernateService.addItem(userId, itemWithRequestDto));
@@ -141,6 +139,7 @@ class ItemHibernateServiceTest {
         when(itemRepository.findItemByIdWithOwner(itemId)).thenThrow(new NotFoundException("NotFoundException"));
 
         assertThrows(NotFoundException.class, () -> itemRepository.findItemByIdWithOwner(itemId));
+
         verify(itemRepository, times(1)).findItemByIdWithOwner(itemId);
         verify(bookingRepository, never()).getLastAndNextBooking(itemId, LocalDateTime.now());
     }

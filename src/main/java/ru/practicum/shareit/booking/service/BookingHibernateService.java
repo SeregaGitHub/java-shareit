@@ -20,10 +20,8 @@ import ru.practicum.shareit.user.storage.UserRepository;
 import ru.practicum.shareit.util.RequestPaginationValid;
 
 import javax.transaction.Transactional;
-import java.time.LocalDate;
+import java.time.Clock;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 
@@ -34,6 +32,7 @@ public class BookingHibernateService implements BookingService {
     private final BookingRepository bookingRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final Clock clock;
 
     @Override
     @Transactional
@@ -102,10 +101,7 @@ public class BookingHibernateService implements BookingService {
         userRepository.findById(booker).orElseThrow(
                 () -> new NotFoundException("User with Id=" + booker + " - does not exist"));
         State state = BookingUtil.makeState(stateString);
-        LocalDateTime localDateTime = LocalDateTime.now();
-        LocalDate localDate = localDateTime.toLocalDate();
-        LocalTime localTime = LocalTime.parse(localDateTime.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
-        LocalDateTime now = LocalDateTime.of(localDate, localTime);
+        LocalDateTime now = LocalDateTime.now(clock);
 
         if (state.equals(State.WAITING)) {
             if (from == null || size == null) {
@@ -159,7 +155,7 @@ public class BookingHibernateService implements BookingService {
         userRepository.findById(owner).orElseThrow(
                 () -> new NotFoundException("User with Id=" + owner + " - does not exist"));
         State state = BookingUtil.makeState(stateString);
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
 
         if (state.equals(State.WAITING)) {
             if (from == null || size == null) {
