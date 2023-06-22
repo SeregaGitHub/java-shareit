@@ -106,6 +106,45 @@ class BookingHibernateServiceTest {
     }
 
     @Test
+    void addBooking_whenUserWasNotFound_thenThrowException() {
+        Integer bookerId = requester.getId();
+        when(userRepository.findById(bookerId)).thenReturn(Optional.empty());
+
+        NotFoundException exception = assertThrows(NotFoundException.class,
+                () -> bookingHibernateService.addBooking(bookerId, bookingDto));
+
+        assertEquals("User with Id=" + bookerId + " - does not exist", exception.getMessage());
+        verify(bookingRepository, never()).save(booking);
+    }
+
+    @Test
+    void addBooking_whenItemWasNotFound_thenThrowException() {
+        Integer bookerId = requester.getId();
+        when(userRepository.findById(bookerId)).thenReturn(Optional.of(user));
+        when(itemRepository.findItemByIdWithOwner(bookingDto.getItemId())).thenReturn(Optional.empty());
+
+        NotFoundException exception = assertThrows(NotFoundException.class,
+                () -> bookingHibernateService.addBooking(bookerId, bookingDto));
+
+        assertEquals("Item with Id=" + bookingDto.getItemId() + " - does not exist", exception.getMessage());
+        verify(bookingRepository, never()).save(booking);
+    }
+
+    @Test
+    void addBooking_whenItemAvailableIsFalse_thenThrowException() {
+        Integer bookerId = requester.getId();
+        when(userRepository.findById(bookerId)).thenReturn(Optional.of(user));
+        when(itemRepository.findItemByIdWithOwner(bookingDto.getItemId())).thenReturn(Optional.of(item));
+        item.setAvailable(false);
+
+        BookingErrorException exception = assertThrows(BookingErrorException.class,
+                () -> bookingHibernateService.addBooking(bookerId, bookingDto));
+
+        assertEquals("Item is not available", exception.getMessage());
+        verify(bookingRepository, never()).save(booking);
+    }
+
+    @Test
     void addBooking_whenStartAndEndTimeNotCorrespond_thenThrowException() {
         bookingDto.setStart(endTimeFuture);
         bookingDto.setEnd(startTimeFuture);
@@ -159,6 +198,20 @@ class BookingHibernateServiceTest {
     }
 
     @Test
+    void setNewStatus_whenBookingStatusIsNotWAITING_thenReturnNotFoundException() {
+        when(bookingRepository.getBooking(booking.getId())).thenReturn(Optional.of(booking));
+        booking.setStatus(Status.REJECTED);
+
+        BookingErrorException exception = assertThrows(BookingErrorException.class,
+                () -> bookingHibernateService.setNewStatus(
+                        booking.getItem().getOwner().getId(), booking.getId(), true));
+
+        assertEquals("New status has already been confirmed", exception.getMessage());
+        verify(bookingRepository, times(1)).getBooking(booking.getId());
+        verify(bookingRepository, never()).save(booking);
+    }
+
+    @Test
     void setNewStatus_whenBookingIsExist_whenReturnApprovedBooking() {
         when(bookingRepository.getBooking(booking.getId())).thenReturn(Optional.of(booking));
 
@@ -175,10 +228,10 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getBooking(booking.getId())).thenReturn(Optional.empty());
 
         NotFoundException notFoundException = assertThrows(NotFoundException.class,
-                () -> bookingHibernateService.setNewStatus(
-                booking.getItem().getOwner().getId(), booking.getId(), true));
+                () -> bookingHibernateService.getBooking(user.getId(), booking.getId()));
 
-        assertEquals("Booking with Id=" + booking.getId() + " does not exist", notFoundException.getMessage());
+        assertEquals("Booking with Id=" + booking.getId() + " does not exist",
+                notFoundException.getMessage());
         verify(bookingRepository, never()).save(booking);
     }
 
@@ -195,11 +248,12 @@ class BookingHibernateServiceTest {
 
     @Test
     void getAllUserBookings_whenUserNotFound_thenThrowException() {
-        when(userRepository.findById(anyInt())).thenThrow(new NotFoundException("new NotFoundException"));
+        when(userRepository.findById(9999)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> userRepository.findById(
-                anyInt()));
+        NotFoundException exception = assertThrows(NotFoundException.class,
+                () -> bookingHibernateService.getAllUserBookings(9999, "text", 0, 1));
 
+        assertEquals("User with Id=" + 9999 + " - does not exist", exception.getMessage());
         verify(bookingRepository, never()).getAllUserBookings(requester.getId(),
                 PageRequest.of(0, 1));
     }
@@ -446,12 +500,12 @@ class BookingHibernateServiceTest {
 
     @Test
     void getAllOwnerBookings_whenUserNotFound_thenThrowException() {
-        when(userRepository.findById(anyInt())).thenThrow(
-                new NotFoundException("NotFoundException"));
+        when(userRepository.findById(9999)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> userRepository.findById(
-                anyInt()));
+        NotFoundException exception = assertThrows(NotFoundException.class,
+                () -> bookingHibernateService.getAllOwnerBooking(9999, "text", 0, 1));
 
+        assertEquals("User with Id=" + 9999 + " - does not exist", exception.getMessage());
         verify(bookingRepository, never()).getAllOwnerBookings(requester.getId(),
                 PageRequest.of(0, 1));
     }

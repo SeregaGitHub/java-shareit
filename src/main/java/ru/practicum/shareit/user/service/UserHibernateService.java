@@ -12,6 +12,7 @@ import ru.practicum.shareit.user.storage.UserRepository;
 import ru.practicum.shareit.user.userUtil.UserUtil;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Primary
@@ -41,15 +42,14 @@ public class UserHibernateService implements UserService {
 
     @Override
     public UserDto updateUser(Integer id, UserDto userDto) {
-        User user = getUser(id);
-        if (user == null) {
-            log.warn("User with Id={} - does not exist", id);
-            throw new NotFoundException("User with Id=" + id + " - does not exist");
-        } else {
-            user = UserUtil.makeUser(user, userDto);
-            userRepository.save(user);
-            log.info("User with Id={} was updated", id);
-        }
+        Optional<User> userOpt = userRepository.findById(id);
+
+        User user = userOpt.orElseThrow(
+                () -> new NotFoundException("User with Id=" + id + " - does not exist"));
+
+        user = UserUtil.makeUser(user, userDto);
+        userRepository.save(user);
+        log.info("User with Id={} was updated", id);
         return UserMapper.toUserDto(user);
     }
 

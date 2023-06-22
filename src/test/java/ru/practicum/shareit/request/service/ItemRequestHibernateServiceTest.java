@@ -114,6 +114,21 @@ class ItemRequestHibernateServiceTest {
     }
 
     @Test
+    void getAllItemRequestsList_whenThereIsNoPageRequest_thenReturnList() {
+        Integer userId = user.getId();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(itemRequestRepository.getItemRequestsList(userId))
+                .thenReturn(List.of(itemRequestDto));
+
+        List<ItemRequestWithItemsDto> returnedList = itemRequestHibernateService.getAllItemRequestsList(
+                userId, null, null);
+
+        assertEquals(1, returnedList.size());
+        verify(userRepository, times(1)).findById(userId);
+        verify(itemRequestRepository, times(1)).getItemRequestsList(userId);
+    }
+
+    @Test
     void getAllItemRequestsList_whenUserDoesNotExist_whenThrowException() {
         Integer requesterId = requester.getId();
         when(userRepository.findById(requesterId)).thenReturn(Optional.empty());

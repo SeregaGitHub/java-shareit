@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemWithBookingDto;
 import ru.practicum.shareit.user.model.User;
@@ -48,13 +49,21 @@ class InMemoryItemStorageTest {
     }
 
     @Test
-    void updateItem() {
+    void updateItem_whenOwnerIsExist_thenReturnUpdatedItem() {
         ItemDto returnedItemDto = inMemoryItemStorage.updateItem(owner.getId(), secondItemDto, itemDto.getId());
 
         assertEquals(1, returnedItemDto.getId());
         assertEquals("secondItemName", returnedItemDto.getName());
         assertEquals("secondItemDescription", returnedItemDto.getDescription());
         assertTrue(returnedItemDto.getAvailable());
+    }
+
+    @Test
+    void updateItem_whenOwnerDoesNotMatch_thenThrowException() {
+        NotFoundException notFoundException = assertThrows(NotFoundException.class,
+                () -> inMemoryItemStorage.updateItem(9999, secondItemDto, itemDto.getId()));
+
+        assertEquals("Item belongs to another owner", notFoundException.getMessage());
     }
 
     @Test

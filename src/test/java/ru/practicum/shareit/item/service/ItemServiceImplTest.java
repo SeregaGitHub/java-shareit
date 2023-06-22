@@ -17,6 +17,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.InMemoryItemStorage;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.InMemoryUserStorage;
+import ru.practicum.shareit.util.Utilities;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +65,7 @@ class ItemServiceImplTest {
     }
 
     @Test
-    void addItem() {
+    void addItem_whenOwnerFound_thenReturnItem() {
         when(inMemoryUserStorage.getUser(owner.getId())).thenReturn(owner);
         when(inMemoryItemStorage.addItem(owner, itemWithRequestDto)).thenReturn(itemWithRequestDto);
 
@@ -72,6 +73,14 @@ class ItemServiceImplTest {
 
         assertEquals(itemWithRequestDto, returnedItemWithRequestDto);
         verify(inMemoryItemStorage, times(1)).addItem(owner, itemWithRequestDto);
+    }
+
+    @Test
+    void addItem_whenOwnerIsNull_thenThrowException() {
+        OwnerNotFoundException exception = assertThrows(OwnerNotFoundException.class,
+                () -> Utilities.checkUserExist(null, inMemoryUserStorage));
+
+        assertEquals("Request do not contain owner of the item", exception.getMessage());
     }
 
     @Test

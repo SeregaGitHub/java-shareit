@@ -26,10 +26,12 @@ class UserHibernateServiceTest {
     @Captor
     private ArgumentCaptor<User> userArgumentCaptor;
     private User user;
+    private User updatedUser;
 
     @BeforeEach
     void beforeEach() {
         user = new User(0, "name", "user@yandex.ru");
+        updatedUser = new User(0, "newName", "newEmail@yandex.ru");
     }
 
     @Test
@@ -78,9 +80,12 @@ class UserHibernateServiceTest {
     @Test
     void updateUser_whenUserNotFound_thenThrowNewNotFoundException() {
         Integer userId = user.getId();
-        when(userRepository.findById(userId)).thenThrow(new NotFoundException("NotFoundException"));
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> userHibernateService.updateUser(userId, UserMapper.toUserDto(user)));
+        NotFoundException notFoundException = assertThrows(NotFoundException.class,
+                () -> userHibernateService.updateUser(userId, UserMapper.toUserDto(updatedUser)));
+
+        assertEquals("User with Id=" + userId + " - does not exist", notFoundException.getMessage());
         verify(userRepository, times(1)).findById(userId);
         verify(userRepository, never()).save(user);
     }
@@ -88,7 +93,6 @@ class UserHibernateServiceTest {
     @Test
     void updateUser_whenUserFound_thenReturnUser() {
         Integer userId = user.getId();
-        User updatedUser = new User(userId, "newName", "newEmail@yandex.ru");
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
         userHibernateService.updateUser(userId, UserMapper.toUserDto(updatedUser));

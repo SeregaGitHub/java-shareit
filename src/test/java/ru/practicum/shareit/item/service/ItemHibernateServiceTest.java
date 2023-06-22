@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import ru.practicum.shareit.booking.bookingUtil.Status;
 import ru.practicum.shareit.booking.dto.BookingForItemDto;
 import ru.practicum.shareit.booking.storage.BookingRepository;
+import ru.practicum.shareit.exception.CommentErrorException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.itemUtil.ItemMapper;
@@ -114,7 +115,7 @@ class ItemHibernateServiceTest {
     }
 
     @Test
-    void updateItem_whenOwnerNotFound_whenThrowException() {
+    void updateItem_whenItemNotFound_whenThrowException() {
         Integer itemId = itemDto.getId();
         when(itemRepository.findById(itemId)).thenReturn(Optional.empty());
 
@@ -122,6 +123,19 @@ class ItemHibernateServiceTest {
                 () -> itemHibernateService.updateItem(user.getId(), itemDto, itemDto.getId()));
 
         assertEquals("Item with Id=" + itemId + " - does not exist", notFoundException.getMessage());
+        verify(itemRepository, times(1)).findById(itemDto.getId());
+        verify(itemRepository, never()).save(item);
+    }
+
+    @Test
+    void updateItem_whenOwnerNotFound_whenThrowException() {
+        Integer itemId = itemDto.getId();
+        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+
+        NotFoundException notFoundException = assertThrows(NotFoundException.class,
+                () -> itemHibernateService.updateItem(9999, itemDto, itemDto.getId()));
+
+        assertEquals("Item belongs to another owner", notFoundException.getMessage());
         verify(itemRepository, times(1)).findById(itemDto.getId());
         verify(itemRepository, never()).save(item);
     }
@@ -143,16 +157,19 @@ class ItemHibernateServiceTest {
     @Test
     void getItem_whenItemNotFound_thenThrowNewNotFoundException() {
         Integer itemId = item.getId();
-        when(itemRepository.findItemByIdWithOwner(itemId)).thenThrow(new NotFoundException("NotFoundException"));
+        when(itemRepository.findItemByIdWithOwner(itemId)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> itemRepository.findItemByIdWithOwner(itemId));
+        NotFoundException exception = assertThrows(NotFoundException.class,
+                () -> itemHibernateService.getItem(user.getId(), itemId));
 
+        assertEquals("Item with Id=" + itemId + " - does not exist", exception.getMessage());
         verify(itemRepository, times(1)).findItemByIdWithOwner(itemId);
+        verify(commentRepository, never()).getItemComment(itemId);
         verify(bookingRepository, never()).getLastAndNextBooking(itemId, LocalDateTime.now());
     }
 
     @Test
-    void getItem_whenItemFound_thenReturnItem() {
+    void getItem_whenItemFound_thenReturnItemWithBooking() {
         Integer itemId = item.getId();
         when(itemRepository.findItemByIdWithOwner(itemId)).thenReturn(Optional.of(item));
         when(commentRepository.getItemComment(itemId)).thenReturn(List.of(commentDto));
@@ -162,6 +179,20 @@ class ItemHibernateServiceTest {
         assertEquals(itemWithBookingDto, returnedItem);
         verify(itemRepository, times(1)).findItemByIdWithOwner(itemId);
         verify(commentRepository, times(1)).getItemComment(itemId);
+    }
+
+    @Test
+    void getItem_whenItemFound_thenReturnItemWithNoBooking() {
+        Integer itemId = item.getId();
+        when(itemRepository.findItemByIdWithOwner(itemId)).thenReturn(Optional.of(item));
+        when(commentRepository.getItemComment(itemId)).thenReturn(List.of(commentDto));
+
+        ItemWithBookingDto returnedItem = itemHibernateService.getItem(9999, itemId);
+
+        assertEquals(itemWithBookingDto, returnedItem);
+        verify(itemRepository, times(1)).findItemByIdWithOwner(itemId);
+        verify(commentRepository, times(1)).getItemComment(itemId);
+        verify(bookingRepository, never()).getLastAndNextBooking(itemId, now);
     }
 
     @Test
@@ -256,18 +287,18 @@ class ItemHibernateServiceTest {
 
     @Test
     void getItemsBySearch_whenTextIsBlank_thenReturnList() {
-        when(itemRepository.findByAvailableTrueAndNameIgnoreCaseOrAvailableTrueAndDescriptionIgnoreCaseContaining(
-                "itemN", "itemN")).thenReturn(new ArrayList<>());
+        lenient().when(itemRepository.findByAvailableTrueAndNameIgnoreCaseOrAvailableTrueAndDescriptionIgnoreCaseContaining(
+                "", "")).thenReturn(new ArrayList<>());
 
-        List<ItemDto> returnedList = itemHibernateService.getItemsBySearch("itemN", null, null);
+        List<ItemDto> returnedList = itemHibernateService.getItemsBySearch("", null, null);
 
         assertEquals(0, returnedList.size());
-        verify(itemRepository, times(1)).findByAvailableTrueAndNameIgnoreCaseOrAvailableTrueAndDescriptionIgnoreCaseContaining(
-                "itemN", "itemN");
+        verify(itemRepository, never()).findByAvailableTrueAndNameIgnoreCaseOrAvailableTrueAndDescriptionIgnoreCaseContaining(
+                "", "");
     }
 
     @Test
-    void addComment() {
+    void addComment_whenBookingIsExist_thenReturnComment() {
         Integer userId = user.getId();
         Integer itemId = item.getId();
         when(bookingRepository.getBookingDtoByBooker_IdAndItem_Id(userId, itemId, Status.APPROVED,
@@ -286,5 +317,42 @@ class ItemHibernateServiceTest {
         verify(userRepository, times(1)).findById(userId);
         verify(itemRepository, times(1)).findItemByIdWithOwner(itemId);
         verify(commentRepository, times(1)).save(comment);
+    }
+
+    @Test
+    void addComment_whenBookingIsNotExist_thenThrowException() {
+        Integer userId = user.getId();
+        Integer itemId = item.getId();
+        when(bookingRepository.getBookingDtoByBooker_IdAndItem_Id(userId, itemId, Status.APPROVED,
+                PageRequest.of(0, 1))).thenReturn(List.of(
+                new BookingForItemDto(0, now.minusHours(2), now.plusHours(1), itemId, requester.getId())));
+
+        CommentErrorException exception = assertThrows(CommentErrorException.class,
+                () -> itemHibernateService.addComment(userId, itemId, commentDto));
+        assertEquals("You can not create comment before your booking is not end", exception.getMessage());
+
+        verify(bookingRepository, times(1)).getBookingDtoByBooker_IdAndItem_Id(userId, itemId,
+                Status.APPROVED, PageRequest.of(0, 1));
+        verify(userRepository, never()).findById(userId);
+        verify(itemRepository, never()).findItemByIdWithOwner(itemId);
+        verify(commentRepository, never()).save(comment);
+    }
+
+    @Test
+    void addComment_whenBookingTimeIsNotOver_thenThrowException() {
+        Integer userId = user.getId();
+        Integer itemId = item.getId();
+        when(bookingRepository.getBookingDtoByBooker_IdAndItem_Id(userId, itemId, Status.APPROVED,
+                PageRequest.of(0, 1))).thenReturn(new ArrayList<>());
+
+        CommentErrorException exception = assertThrows(CommentErrorException.class,
+                () -> itemHibernateService.addComment(userId, itemId, commentDto));
+        assertEquals("User with Id=" + userId + " did not book item with Id=" + itemId, exception.getMessage());
+
+        verify(bookingRepository, times(1)).getBookingDtoByBooker_IdAndItem_Id(userId, itemId,
+                Status.APPROVED, PageRequest.of(0, 1));
+        verify(userRepository, never()).findById(userId);
+        verify(itemRepository, never()).findItemByIdWithOwner(itemId);
+        verify(commentRepository, never()).save(comment);
     }
 }
