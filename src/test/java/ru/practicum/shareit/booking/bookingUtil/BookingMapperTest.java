@@ -17,25 +17,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class BookingMapperTest {
     private User booker;
-    private User user;
     private Item item;
-    private ItemWithRequestDto itemWithRequestDto;
-    private ItemRequest itemRequest;
-    private BookingForItemDto bookingForItemDto;
     private BookingDto bookingDto;
     private Booking booking;
-    private LocalDateTime now;
 
     @BeforeEach
     void beforeEach() {
-        now = LocalDateTime.now();
-        user = new User(0, "name", "user@yandex.ru");
+        LocalDateTime now = LocalDateTime.now();
+        User user = new User(0, "name", "user@yandex.ru");
         booker = new User(1, "requesterName", "requester@yandex.ru");
-        itemRequest = new ItemRequest(0, "itemN", now, booker);
-        itemWithRequestDto = new ItemWithRequestDto(0, "itemName", "itemDescription", true,
+        ItemRequest itemRequest = new ItemRequest(0, "itemN", now, booker);
+        ItemWithRequestDto itemWithRequestDto = new ItemWithRequestDto(0, "itemName", "itemDescription", true,
                 booker.getId());
         item = ItemMapper.toItem(user, itemWithRequestDto, itemRequest);
-        bookingForItemDto = BookingForItemDto.builder()
+        BookingForItemDto bookingForItemDto = BookingForItemDto.builder()
                 .id(1)
                 .startTime(now.plusHours(1))
                 .endTime(now.plusHours(2))

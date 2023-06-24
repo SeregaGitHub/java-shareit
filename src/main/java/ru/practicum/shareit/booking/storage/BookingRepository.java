@@ -25,17 +25,7 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     @Query(
             SELECT_BOOKING + "where u.id = ?1 order by b.start desc"
     )
-    List<Booking> getAllUserBookings(Integer booker);
-
-    @Query(
-            SELECT_BOOKING + "where u.id = ?1 order by b.start desc"
-    )
     List<Booking> getAllUserBookings(Integer booker, PageRequest pageRequest);
-
-    @Query(
-            SELECT_BOOKING + "where u.id = ?1 and b.status = ?2"
-    )
-    List<Booking> getUserBookingsByStatus(Integer booker, Status status);
 
     @Query(
             SELECT_BOOKING + "where u.id = ?1 and b.status = ?2"
@@ -45,17 +35,7 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     @Query(
             SELECT_BOOKING + "where u.id = ?1 and b.start > ?2 order by b.start desc"
     )
-    List<Booking> getUserBookingInFuture(Integer booker, LocalDateTime localDateTimeNow);
-
-    @Query(
-            SELECT_BOOKING + "where u.id = ?1 and b.start > ?2 order by b.start desc"
-    )
     List<Booking> getUserBookingInFuture(Integer booker, LocalDateTime localDateTimeNow, PageRequest pageRequest);
-
-    @Query(
-            SELECT_BOOKING + "where u.id = ?1 and b.end < ?2 order by b.start desc"
-    )
-    List<Booking> getUserBookingInPast(Integer booker, LocalDateTime localDateTimeNow);
 
     @Query(
             SELECT_BOOKING + "where u.id = ?1 and b.end < ?2 order by b.start desc"
@@ -65,17 +45,7 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     @Query(
             SELECT_BOOKING + "where u.id = ?1 and b.start < ?2 and b.end > ?2 order by b.start desc"
     )
-    List<Booking> getUserBookingInCurrent(Integer booker, LocalDateTime localDateTimeNow);
-
-    @Query(
-            SELECT_BOOKING + "where u.id = ?1 and b.start < ?2 and b.end > ?2 order by b.start desc"
-    )
     List<Booking> getUserBookingInCurrent(Integer booker, LocalDateTime localDateTimeNow, PageRequest pageRequest);
-
-    @Query(
-            SELECT_BOOKING + "where o.id = ?1 order by b.start desc"
-    )
-    List<Booking> getAllOwnerBookings(Integer owner);
 
     @Query(
             SELECT_BOOKING + "where o.id = ?1 order by b.start desc"
@@ -85,17 +55,7 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     @Query(
             SELECT_BOOKING + "where o.id = ?1 and b.status = ?2"
     )
-    List<Booking> getOwnerBookingsByStatus(Integer booker, Status status);
-
-    @Query(
-            SELECT_BOOKING + "where o.id = ?1 and b.status = ?2"
-    )
     List<Booking> getOwnerBookingsByStatus(Integer booker, Status status, PageRequest pageRequest);
-
-    @Query(
-            SELECT_BOOKING + "where o.id = ?1 and b.start > ?2 order by b.start desc"
-    )
-    List<Booking> getOwnerBookingInFuture(Integer booker, LocalDateTime localDateTimeNow);
 
     @Query(
             SELECT_BOOKING + "where o.id = ?1 and b.start > ?2 order by b.start desc"
@@ -105,17 +65,7 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     @Query(
             SELECT_BOOKING + "where o.id = ?1 and b.end < ?2 order by b.start desc"
     )
-    List<Booking> getOwnerBookingInPast(Integer booker, LocalDateTime localDateTimeNow);
-
-    @Query(
-            SELECT_BOOKING + "where o.id = ?1 and b.end < ?2 order by b.start desc"
-    )
     List<Booking> getOwnerBookingInPast(Integer booker, LocalDateTime localDateTimeNow, PageRequest pageRequest);
-
-    @Query(
-            SELECT_BOOKING + "where o.id = ?1 and b.start < ?2 and b.end > ?2 order by b.start desc"
-    )
-    List<Booking> getOwnerBookingInCurrent(Integer booker, LocalDateTime localDateTimeNow);
 
     @Query(
             SELECT_BOOKING + "where o.id = ?1 and b.start < ?2 and b.end > ?2 order by b.start desc"

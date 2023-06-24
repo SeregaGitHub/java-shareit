@@ -113,8 +113,9 @@ class BookingRepositoryTest {
     }
 
     @Test
-    void getAllUserBookings_whenThereIsNoPageRequest_thenReturnAllBookings() {
-        List<Booking> returnedList = bookingRepository.getAllUserBookings(booker.getId());
+    void getAllUserBookings_whenPageRequestIsDefault_thenReturnAllBookings() {
+        List<Booking> returnedList = bookingRepository.getAllUserBookings(booker.getId(),
+                PageRequest.of(0, Integer.MAX_VALUE));
 
         assertEquals(3, returnedList.size());
     }
@@ -127,9 +128,10 @@ class BookingRepositoryTest {
     }
 
     @Test
-    void getUserBookingsByStatus_whenThereIsNoPageRequestAndStatusIsWAITING_thenReturnListOfTwoBookings() {
+    void getUserBookingsByStatus_whenPageRequestIsDefaultAndStatusIsWAITING_thenReturnListOfTwoBookings() {
         pastBooking.setStatus(Status.APPROVED);
-        List<Booking> returnedList = bookingRepository.getUserBookingsByStatus(booker.getId(), Status.WAITING);
+        List<Booking> returnedList = bookingRepository.getUserBookingsByStatus(booker.getId(), Status.WAITING,
+                PageRequest.of(0, Integer.MAX_VALUE));
 
         assertEquals(2, returnedList.size());
     }
@@ -144,8 +146,9 @@ class BookingRepositoryTest {
     }
 
     @Test
-    void getUserBookingInFuture_whenThereIsNoPageRequest_thenReturnListOfOneBookings() {
-        List<Booking> returnedList = bookingRepository.getUserBookingInFuture(booker.getId(), now);
+    void getUserBookingInFuture_whenPageRequestIsDefault_thenReturnListOfOneBookings() {
+        List<Booking> returnedList = bookingRepository.getUserBookingInFuture(booker.getId(), now,
+                PageRequest.of(0, Integer.MAX_VALUE));
 
         assertEquals(1, returnedList.size());
     }
@@ -159,8 +162,9 @@ class BookingRepositoryTest {
     }
 
     @Test
-    void getUserBookingInPast_whenThereIsNoPageRequest_thenReturnListOfOneBookings() {
-        List<Booking> returnedList = bookingRepository.getUserBookingInPast(booker.getId(), now);
+    void getUserBookingInPast_whenPageRequestIsDefault_thenReturnListOfOneBookings() {
+        List<Booking> returnedList = bookingRepository.getUserBookingInPast(booker.getId(), now,
+                PageRequest.of(0, Integer.MAX_VALUE));
 
         assertEquals(1, returnedList.size());
     }
@@ -174,8 +178,9 @@ class BookingRepositoryTest {
     }
 
     @Test
-    void getUserBookingInCurrent_whenThereIsNoPageRequest_thenReturnListOfOneBookings() {
-        List<Booking> returnedList = bookingRepository.getUserBookingInCurrent(booker.getId(), now);
+    void getUserBookingInCurrent_whenPageRequestIsDefault_thenReturnListOfOneBookings() {
+        List<Booking> returnedList = bookingRepository.getUserBookingInCurrent(booker.getId(), now,
+                PageRequest.of(0, Integer.MAX_VALUE));
 
         assertEquals(1, returnedList.size());
     }
@@ -189,8 +194,9 @@ class BookingRepositoryTest {
     }
 
     @Test
-    void getAllOwnerBookings_whenThereIsNoPageRequest_thenReturnAllBookings() {
-        List<Booking> returnedList = bookingRepository.getAllOwnerBookings(item.getOwner().getId());
+    void getAllOwnerBookings_whenPageRequestIsDefault_thenReturnAllBookings() {
+        List<Booking> returnedList = bookingRepository.getAllOwnerBookings(item.getOwner().getId(),
+                PageRequest.of(0, Integer.MAX_VALUE));
 
         assertEquals(3, returnedList.size());
     }
@@ -203,9 +209,10 @@ class BookingRepositoryTest {
     }
 
     @Test
-    void getOwnerBookingsByStatus_whenThereIsNoPageRequestAndStatusIsWAITING_thenReturnListOfTwoBookings() {
+    void getOwnerBookingsByStatus_whenPageRequestIsDefaultAndStatusIsWAITING_thenReturnListOfTwoBookings() {
         pastBooking.setStatus(Status.APPROVED);
-        List<Booking> returnedList = bookingRepository.getOwnerBookingsByStatus(item.getOwner().getId(), Status.WAITING);
+        List<Booking> returnedList = bookingRepository.getOwnerBookingsByStatus(item.getOwner().getId(), Status.WAITING,
+                PageRequest.of(0, Integer.MAX_VALUE));
 
         assertEquals(2, returnedList.size());
     }
@@ -220,8 +227,9 @@ class BookingRepositoryTest {
     }
 
     @Test
-    void getOwnerBookingInFuture_whenThereIsNoPageRequest_thenReturnListOfOneBookings() {
-        List<Booking> returnedList = bookingRepository.getOwnerBookingInFuture(item.getOwner().getId(), now);
+    void getOwnerBookingInFuture_whenPageRequestIsDefault_thenReturnListOfOneBookings() {
+        List<Booking> returnedList = bookingRepository.getOwnerBookingInFuture(item.getOwner().getId(), now,
+                PageRequest.of(0, Integer.MAX_VALUE));
 
         assertEquals(1, returnedList.size());
     }
@@ -235,8 +243,9 @@ class BookingRepositoryTest {
     }
 
     @Test
-    void getOwnerBookingInPast_whenThereIsNoPageRequest_thenReturnListOfOneBookings() {
-        List<Booking> returnedList = bookingRepository.getOwnerBookingInPast(item.getOwner().getId(), now);
+    void getOwnerBookingInPast_whenPageRequestIsDefault_thenReturnListOfOneBookings() {
+        List<Booking> returnedList = bookingRepository.getOwnerBookingInPast(item.getOwner().getId(), now,
+                PageRequest.of(0, Integer.MAX_VALUE));
 
         assertEquals(1, returnedList.size());
     }
@@ -250,8 +259,9 @@ class BookingRepositoryTest {
     }
 
     @Test
-    void getOwnerBookingInCurrent_whenThereIsNoPageRequest_thenReturnListOfOneBookings() {
-        List<Booking> returnedList = bookingRepository.getOwnerBookingInCurrent(item.getOwner().getId(), now);
+    void getOwnerBookingInCurrent_whenPageRequestIsDefault_thenReturnListOfOneBookings() {
+        List<Booking> returnedList = bookingRepository.getOwnerBookingInCurrent(item.getOwner().getId(), now,
+                PageRequest.of(0, Integer.MAX_VALUE));
 
         assertEquals(1, returnedList.size());
     }

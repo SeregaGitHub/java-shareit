@@ -104,48 +104,24 @@ public class BookingServiceImpl implements BookingService {
         LocalDateTime now = LocalDateTime.now(clock);
 
         if (state.equals(State.WAITING)) {
-            if (from == null || size == null) {
-                return bookingRepository.getUserBookingsByStatus(booker, Status.WAITING);
-            } else {
                 return bookingRepository.getUserBookingsByStatus(booker, Status.WAITING,
                         PageRequest.of(from > 0 ? from / size : 0, size));
-            }
         } else if (state.equals(State.REJECTED)) {
-            if (from == null || size == null) {
-                return bookingRepository.getUserBookingsByStatus(booker, Status.REJECTED);
-            } else {
                 return bookingRepository.getUserBookingsByStatus(booker, Status.REJECTED,
                         PageRequest.of(from > 0 ? from / size : 0, size));
-            }
         } else if (state.equals(State.FUTURE)) {
-            if (from == null || size == null) {
-                return bookingRepository.getUserBookingInFuture(booker, now);
-            } else {
                 return bookingRepository.getUserBookingInFuture(booker, now,
                         PageRequest.of(from > 0 ? from / size : 0, size));
-            }
         } else if (state.equals(State.PAST)) {
-            if (from == null || size == null) {
-                return bookingRepository.getUserBookingInPast(booker, now);
-            } else {
                 return bookingRepository.getUserBookingInPast(booker, now,
                         PageRequest.of(from > 0 ? from / size : 0, size));
-            }
         } else if (state.equals(State.CURRENT)) {
-            if (from == null || size == null) {
-                return bookingRepository.getUserBookingInCurrent(booker, now);
-            } else {
                 return bookingRepository.getUserBookingInCurrent(booker, now,
                         PageRequest.of(from > 0 ? from / size : 0, size));
-            }
         } else {
-            if (from == null || size == null) {
-                return bookingRepository.getAllUserBookings(booker);
-            } else {
                 return bookingRepository.getAllUserBookings(booker,
                         PageRequest.of(from > 0 ? from / size : 0, size));
             }
-        }
     }
 
     @Override
@@ -158,47 +134,23 @@ public class BookingServiceImpl implements BookingService {
         LocalDateTime now = LocalDateTime.now(clock);
 
         if (state.equals(State.WAITING)) {
-            if (from == null || size == null) {
-                return bookingRepository.getOwnerBookingsByStatus(owner, Status.WAITING);
-            } else {
                 return bookingRepository.getOwnerBookingsByStatus(owner, Status.WAITING,
                         PageRequest.of(from > 0 ? from / size : 0, size));
-            }
         } else if (state.equals(State.REJECTED)) {
-            if (from == null || size == null) {
-                return bookingRepository.getOwnerBookingsByStatus(owner, Status.REJECTED);
-            } else {
                 return bookingRepository.getOwnerBookingsByStatus(owner, Status.REJECTED,
                         PageRequest.of(from > 0 ? from / size : 0, size));
-            }
         } else if (state.equals(State.FUTURE)) {
-            if (from == null || size == null) {
-                return bookingRepository.getOwnerBookingInFuture(owner, now);
-            } else {
                 return bookingRepository.getOwnerBookingInFuture(owner, now,
                         PageRequest.of(from > 0 ? from / size : 0, size));
-            }
         } else if (state.equals(State.PAST)) {
-            if (from == null || size == null) {
-                return bookingRepository.getOwnerBookingInPast(owner, now);
-            } else {
                 return bookingRepository.getOwnerBookingInPast(owner, now,
                         PageRequest.of(from > 0 ? from / size : 0, size));
-            }
         } else if (state.equals(State.CURRENT)) {
-            if (from == null || size == null) {
-                return bookingRepository.getOwnerBookingInCurrent(owner, now);
-            } else {
                 return bookingRepository.getOwnerBookingInCurrent(owner, now,
                         PageRequest.of(from > 0 ? from / size : 0, size));
-            }
         } else {
-            if (from == null || size == null) {
-                return bookingRepository.getAllOwnerBookings(owner);
-            } else {
                 return bookingRepository.getAllOwnerBookings(owner,
                         PageRequest.of(from > 0 ? from / size : 0, size));
             }
-        }
     }
 }
