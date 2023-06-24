@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class BookingHibernateServiceTest {
+class BookingServiceImplTest {
     @Mock
     private ItemRepository itemRepository;
     @Mock
@@ -48,7 +48,7 @@ class BookingHibernateServiceTest {
     @Mock
     private Clock clock;
     @InjectMocks
-    private BookingHibernateService bookingHibernateService;
+    private BookingServiceImpl bookingServiceImpl;
     private User user;
     private User requester;
     private Item item;
@@ -100,7 +100,7 @@ class BookingHibernateServiceTest {
         bookingDto.setItemId(-1);
 
         assertThrows(BookingErrorException.class,
-                () -> bookingHibernateService.addBooking(requester.getId(), bookingDto));
+                () -> bookingServiceImpl.addBooking(requester.getId(), bookingDto));
 
         verify(bookingRepository, never()).save(booking);
     }
@@ -111,7 +111,7 @@ class BookingHibernateServiceTest {
         when(userRepository.findById(bookerId)).thenReturn(Optional.empty());
 
         NotFoundException exception = assertThrows(NotFoundException.class,
-                () -> bookingHibernateService.addBooking(bookerId, bookingDto));
+                () -> bookingServiceImpl.addBooking(bookerId, bookingDto));
 
         assertEquals("User with Id=" + bookerId + " - does not exist", exception.getMessage());
         verify(bookingRepository, never()).save(booking);
@@ -124,7 +124,7 @@ class BookingHibernateServiceTest {
         when(itemRepository.findItemByIdWithOwner(bookingDto.getItemId())).thenReturn(Optional.empty());
 
         NotFoundException exception = assertThrows(NotFoundException.class,
-                () -> bookingHibernateService.addBooking(bookerId, bookingDto));
+                () -> bookingServiceImpl.addBooking(bookerId, bookingDto));
 
         assertEquals("Item with Id=" + bookingDto.getItemId() + " - does not exist", exception.getMessage());
         verify(bookingRepository, never()).save(booking);
@@ -138,7 +138,7 @@ class BookingHibernateServiceTest {
         item.setAvailable(false);
 
         BookingErrorException exception = assertThrows(BookingErrorException.class,
-                () -> bookingHibernateService.addBooking(bookerId, bookingDto));
+                () -> bookingServiceImpl.addBooking(bookerId, bookingDto));
 
         assertEquals("Item is not available", exception.getMessage());
         verify(bookingRepository, never()).save(booking);
@@ -150,7 +150,7 @@ class BookingHibernateServiceTest {
         bookingDto.setEnd(startTimeFuture);
 
         assertThrows(BookingErrorException.class,
-                () -> bookingHibernateService.addBooking(requester.getId(), bookingDto));
+                () -> bookingServiceImpl.addBooking(requester.getId(), bookingDto));
 
         verify(bookingRepository, never()).save(booking);
     }
@@ -163,7 +163,7 @@ class BookingHibernateServiceTest {
         item.getOwner().setId(requester.getId());
 
         assertThrows(NotFoundException.class,
-                () -> bookingHibernateService.addBooking(item.getOwner().getId(), bookingDto));
+                () -> bookingServiceImpl.addBooking(item.getOwner().getId(), bookingDto));
 
         verify(bookingRepository, never()).save(booking);
     }
@@ -176,7 +176,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.save(BookingMapper.toBooking(requester, bookingDto, item)))
                 .thenReturn(booking);
 
-        Booking returnedBooking = bookingHibernateService.addBooking(requester.getId(), bookingDto);
+        Booking returnedBooking = bookingServiceImpl.addBooking(requester.getId(), bookingDto);
         assertEquals(booking, returnedBooking);
 
         verify(userRepository, times(1)).findById(requester.getId());
@@ -189,7 +189,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getBooking(booking.getId())).thenReturn(Optional.empty());
 
         NotFoundException notFoundException = assertThrows(NotFoundException.class,
-                () -> bookingHibernateService.setNewStatus(
+                () -> bookingServiceImpl.setNewStatus(
                 booking.getItem().getOwner().getId(), booking.getId(), true));
 
         assertEquals("Booking with Id=" + booking.getId() + " does not exist", notFoundException.getMessage());
@@ -203,7 +203,7 @@ class BookingHibernateServiceTest {
         booking.setStatus(Status.REJECTED);
 
         BookingErrorException exception = assertThrows(BookingErrorException.class,
-                () -> bookingHibernateService.setNewStatus(
+                () -> bookingServiceImpl.setNewStatus(
                         booking.getItem().getOwner().getId(), booking.getId(), true));
 
         assertEquals("New status has already been confirmed", exception.getMessage());
@@ -215,7 +215,7 @@ class BookingHibernateServiceTest {
     void setNewStatus_whenBookingIsExist_whenReturnApprovedBooking() {
         when(bookingRepository.getBooking(booking.getId())).thenReturn(Optional.of(booking));
 
-        bookingHibernateService.setNewStatus(booking.getItem().getOwner().getId(), booking.getId(), true);
+        bookingServiceImpl.setNewStatus(booking.getItem().getOwner().getId(), booking.getId(), true);
 
         verify(bookingRepository, times(1)).save(bookingArgumentCaptor.capture());
         Booking captorBooking = bookingArgumentCaptor.getValue();
@@ -228,7 +228,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getBooking(booking.getId())).thenReturn(Optional.empty());
 
         NotFoundException notFoundException = assertThrows(NotFoundException.class,
-                () -> bookingHibernateService.getBooking(user.getId(), booking.getId()));
+                () -> bookingServiceImpl.getBooking(user.getId(), booking.getId()));
 
         assertEquals("Booking with Id=" + booking.getId() + " does not exist",
                 notFoundException.getMessage());
@@ -240,7 +240,7 @@ class BookingHibernateServiceTest {
         Integer bookingId = booking.getId();
         when(bookingRepository.getBooking(bookingId)).thenReturn(Optional.of(booking));
 
-        Booking returnedBooking = bookingHibernateService.getBooking(booking.getBooker().getId(), bookingId);
+        Booking returnedBooking = bookingServiceImpl.getBooking(booking.getBooker().getId(), bookingId);
 
         assertEquals(booking, returnedBooking);
         verify(bookingRepository, times(1)).getBooking(bookingId);
@@ -251,7 +251,7 @@ class BookingHibernateServiceTest {
         when(userRepository.findById(9999)).thenReturn(Optional.empty());
 
         NotFoundException exception = assertThrows(NotFoundException.class,
-                () -> bookingHibernateService.getAllUserBookings(9999, "text", 0, 1));
+                () -> bookingServiceImpl.getAllUserBookings(9999, "text", 0, 1));
 
         assertEquals("User with Id=" + 9999 + " - does not exist", exception.getMessage());
         verify(bookingRepository, never()).getAllUserBookings(requester.getId(),
@@ -260,7 +260,7 @@ class BookingHibernateServiceTest {
 
     @Test
     void getAllUserBookings_whenRequestPaginationIsNotValid_thenThrowException() {
-        assertThrows(RequestPaginationException.class, () -> bookingHibernateService.getAllUserBookings(
+        assertThrows(RequestPaginationException.class, () -> bookingServiceImpl.getAllUserBookings(
                 requester.getId(), State.ALL.toString(), -1, -1));
         verify(bookingRepository, never()).getAllUserBookings(requester.getId(),
                 PageRequest.of(0, 1));
@@ -270,7 +270,7 @@ class BookingHibernateServiceTest {
     void getAllUserBookings_whenStateIsNotCorrespond_thenThrowException() {
         when(userRepository.findById(requester.getId())).thenReturn(Optional.of(requester));
 
-        assertThrows(BookingErrorException.class, () -> bookingHibernateService.getAllUserBookings(
+        assertThrows(BookingErrorException.class, () -> bookingServiceImpl.getAllUserBookings(
                 requester.getId(), "wrongState", 0, 1));
 
         verify(bookingRepository, never()).getAllUserBookings(requester.getId(),
@@ -286,7 +286,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getUserBookingsByStatus(requesterId, Status.WAITING, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(
+        List<Booking> returnedList = bookingServiceImpl.getAllUserBookings(
                 requesterId, State.WAITING.toString(), 0, 1);
 
         assertEquals(1, returnedList.size());
@@ -304,7 +304,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getUserBookingsByStatus(requesterId, Status.WAITING))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(requesterId,
+        List<Booking> returnedList = bookingServiceImpl.getAllUserBookings(requesterId,
                 State.WAITING.toString(), null, null);
 
         assertEquals(1, returnedList.size());
@@ -322,7 +322,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getUserBookingsByStatus(requesterId, Status.REJECTED, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(
+        List<Booking> returnedList = bookingServiceImpl.getAllUserBookings(
                 requesterId, State.REJECTED.toString(), 0, 1);
 
         assertEquals(1, returnedList.size());
@@ -341,7 +341,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getUserBookingsByStatus(requesterId, Status.REJECTED))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(requesterId,
+        List<Booking> returnedList = bookingServiceImpl.getAllUserBookings(requesterId,
                 State.REJECTED.toString(), null, null);
 
         assertEquals(1, returnedList.size());
@@ -358,7 +358,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getUserBookingInFuture(requesterId, now, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(
+        List<Booking> returnedList = bookingServiceImpl.getAllUserBookings(
                 requesterId, State.FUTURE.toString(), 0, 1);
 
         assertEquals(1, returnedList.size());
@@ -376,7 +376,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getUserBookingInFuture(requesterId, now))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(
+        List<Booking> returnedList = bookingServiceImpl.getAllUserBookings(
                 requesterId, State.FUTURE.toString(), null, null);
 
         assertEquals(1, returnedList.size());
@@ -396,7 +396,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getUserBookingInPast(requesterId, now, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(
+        List<Booking> returnedList = bookingServiceImpl.getAllUserBookings(
                 requesterId, State.PAST.toString(), 0, 1);
 
         assertEquals(1, returnedList.size());
@@ -416,7 +416,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getUserBookingInPast(requesterId, now))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(
+        List<Booking> returnedList = bookingServiceImpl.getAllUserBookings(
                 requesterId, State.PAST.toString(), null, null);
 
         assertEquals(1, returnedList.size());
@@ -435,7 +435,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getUserBookingInCurrent(requesterId, now, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(
+        List<Booking> returnedList = bookingServiceImpl.getAllUserBookings(
                 requesterId, State.CURRENT.toString(), 0, 1);
 
         assertEquals(1, returnedList.size());
@@ -454,7 +454,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getUserBookingInCurrent(requesterId, now))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(
+        List<Booking> returnedList = bookingServiceImpl.getAllUserBookings(
                 requesterId, State.CURRENT.toString(), null, null);
 
         assertEquals(1, returnedList.size());
@@ -472,7 +472,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getAllUserBookings(requesterId, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(
+        List<Booking> returnedList = bookingServiceImpl.getAllUserBookings(
                 requesterId, State.ALL.toString(), 0, 1);
 
         assertEquals(1, returnedList.size());
@@ -490,7 +490,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getAllUserBookings(requesterId))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllUserBookings(requesterId,
+        List<Booking> returnedList = bookingServiceImpl.getAllUserBookings(requesterId,
                 State.ALL.toString(), null, null);
 
         assertEquals(1, returnedList.size());
@@ -503,7 +503,7 @@ class BookingHibernateServiceTest {
         when(userRepository.findById(9999)).thenReturn(Optional.empty());
 
         NotFoundException exception = assertThrows(NotFoundException.class,
-                () -> bookingHibernateService.getAllOwnerBooking(9999, "text", 0, 1));
+                () -> bookingServiceImpl.getAllOwnerBooking(9999, "text", 0, 1));
 
         assertEquals("User with Id=" + 9999 + " - does not exist", exception.getMessage());
         verify(bookingRepository, never()).getAllOwnerBookings(requester.getId(),
@@ -512,7 +512,7 @@ class BookingHibernateServiceTest {
 
     @Test
     void getAllOwnerBookings_whenRequestPaginationIsNotValid_thenThrowException() {
-        assertThrows(RequestPaginationException.class, () -> bookingHibernateService.getAllOwnerBooking(
+        assertThrows(RequestPaginationException.class, () -> bookingServiceImpl.getAllOwnerBooking(
                 requester.getId(), State.ALL.toString(), -1, -1));
         verify(bookingRepository, never()).getAllOwnerBookings(requester.getId(),
                 PageRequest.of(0, 1));
@@ -522,7 +522,7 @@ class BookingHibernateServiceTest {
     void getAllOwnerBookings_whenStateIsNotCorrespond_thenThrowException() {
         when(userRepository.findById(requester.getId())).thenReturn(Optional.of(requester));
 
-        assertThrows(BookingErrorException.class, () -> bookingHibernateService.getAllOwnerBooking(
+        assertThrows(BookingErrorException.class, () -> bookingServiceImpl.getAllOwnerBooking(
                 requester.getId(), "wrongState", 0, 1));
 
         verify(bookingRepository, never()).getAllOwnerBookings(requester.getId(),
@@ -538,7 +538,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getOwnerBookingsByStatus(requesterId, Status.WAITING, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(
+        List<Booking> returnedList = bookingServiceImpl.getAllOwnerBooking(
                 requesterId, State.WAITING.toString(), 0, 1);
 
         assertEquals(1, returnedList.size());
@@ -556,7 +556,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getOwnerBookingsByStatus(requesterId, Status.WAITING))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(requesterId,
+        List<Booking> returnedList = bookingServiceImpl.getAllOwnerBooking(requesterId,
                 State.WAITING.toString(), null, null);
 
         assertEquals(1, returnedList.size());
@@ -574,7 +574,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getOwnerBookingsByStatus(requesterId, Status.REJECTED, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(
+        List<Booking> returnedList = bookingServiceImpl.getAllOwnerBooking(
                 requesterId, State.REJECTED.toString(), 0, 1);
 
         assertEquals(1, returnedList.size());
@@ -593,7 +593,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getOwnerBookingsByStatus(requesterId, Status.REJECTED))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(requesterId,
+        List<Booking> returnedList = bookingServiceImpl.getAllOwnerBooking(requesterId,
                 State.REJECTED.toString(), null, null);
 
         assertEquals(1, returnedList.size());
@@ -610,7 +610,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getOwnerBookingInFuture(requesterId, now, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(
+        List<Booking> returnedList = bookingServiceImpl.getAllOwnerBooking(
                 requesterId, State.FUTURE.toString(), 0, 1);
 
         assertEquals(1, returnedList.size());
@@ -628,7 +628,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getOwnerBookingInFuture(requesterId, now))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(
+        List<Booking> returnedList = bookingServiceImpl.getAllOwnerBooking(
                 requesterId, State.FUTURE.toString(), null, null);
 
         assertEquals(1, returnedList.size());
@@ -648,7 +648,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getOwnerBookingInPast(requesterId, now, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(
+        List<Booking> returnedList = bookingServiceImpl.getAllOwnerBooking(
                 requesterId, State.PAST.toString(), 0, 1);
 
         assertEquals(1, returnedList.size());
@@ -668,7 +668,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getOwnerBookingInPast(requesterId, now))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(
+        List<Booking> returnedList = bookingServiceImpl.getAllOwnerBooking(
                 requesterId, State.PAST.toString(), null, null);
 
         assertEquals(1, returnedList.size());
@@ -687,7 +687,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getOwnerBookingInCurrent(requesterId, now, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(
+        List<Booking> returnedList = bookingServiceImpl.getAllOwnerBooking(
                 requesterId, State.CURRENT.toString(), 0, 1);
 
         assertEquals(1, returnedList.size());
@@ -706,7 +706,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getOwnerBookingInCurrent(requesterId, now))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(
+        List<Booking> returnedList = bookingServiceImpl.getAllOwnerBooking(
                 requesterId, State.CURRENT.toString(), null, null);
 
         assertEquals(1, returnedList.size());
@@ -724,7 +724,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getAllOwnerBookings(ownerId, PageRequest.of(0, 1)))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(
+        List<Booking> returnedList = bookingServiceImpl.getAllOwnerBooking(
                 ownerId, State.ALL.toString(), 0, 1);
 
         assertEquals(1, returnedList.size());
@@ -742,7 +742,7 @@ class BookingHibernateServiceTest {
         when(bookingRepository.getAllOwnerBookings(ownerId))
                 .thenReturn(List.of(booking));
 
-        List<Booking> returnedList = bookingHibernateService.getAllOwnerBooking(
+        List<Booking> returnedList = bookingServiceImpl.getAllOwnerBooking(
                 ownerId, State.ALL.toString(), null, null);
 
         assertEquals(1, returnedList.size());

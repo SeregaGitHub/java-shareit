@@ -3,17 +3,16 @@ package ru.practicum.shareit.user.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.storage.InMemoryUserStorage;
+import ru.practicum.shareit.user.storage.UserRepository;
 import ru.practicum.shareit.user.userUtil.UserMapper;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -21,93 +20,97 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class UserServiceImplTest {
     @Mock
-    private InMemoryUserStorage inMemoryUserStorage;
+    private UserRepository userRepository;
     @InjectMocks
     private UserServiceImpl userServiceImpl;
+    @Captor
+    private ArgumentCaptor<User> userArgumentCaptor;
     private User user;
-    private UserDto userDto;
+    private User updatedUser;
 
     @BeforeEach
     void beforeEach() {
         user = new User(0, "name", "user@yandex.ru");
-        userDto = UserDto.builder()
-                .id(0)
-                .name("name")
-                .email("user@yandex.ru")
-                .build();
+        updatedUser = new User(0, "newName", "newEmail@yandex.ru");
     }
 
     @Test
     void getAllUsers() {
-        when(inMemoryUserStorage.getAllUsers()).thenReturn(List.of(user));
+        when(userRepository.findAll()).thenReturn(List.of(user));
 
         List<User> returnedList = userServiceImpl.getAllUsers();
 
         assertEquals(1, returnedList.size());
-        verify(inMemoryUserStorage, times(1)).getAllUsers();
+        verify(userRepository, times(1)).findAll();
+    }
+
+    @Test
+    void getUser_whenUserNotFound_thenThrowNewNotFoundException() {
+        Integer userId = user.getId();
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
+
+        NotFoundException notFoundException = assertThrows(
+                NotFoundException.class, () -> userServiceImpl.getUser(userId));
+
+        assertEquals("User with Id=" + userId + " - does not exist", notFoundException.getMessage());
+        verify(userRepository, times(1)).findById(userId);
     }
 
     @Test
     void getUser_whenUserFound_thenReturnUser() {
         Integer userId = user.getId();
-        when(inMemoryUserStorage.getUser(userId)).thenReturn(user);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
         User returnedUser = userServiceImpl.getUser(userId);
 
         assertEquals(user, returnedUser);
-        verify(inMemoryUserStorage, times(1)).getUser(userId);
+        verify(userRepository, times(1)).findById(userId);
     }
 
     @Test
     void addUser() {
-        when(inMemoryUserStorage.addUser(userDto)).thenReturn(userDto);
+        when(userRepository.save(user)).thenReturn(user);
 
-        UserDto returnedUser = userServiceImpl.addUser(userDto);
+        UserDto returnedUser = userServiceImpl.addUser(UserMapper.toUserDto(user));
 
-        assertEquals(userDto, returnedUser);
-        verify(inMemoryUserStorage, times(1)).addUser(userDto);
+        assertEquals(UserMapper.toUserDto(user), returnedUser);
+        verify(userRepository, times(1)).save(user);
     }
 
     @Test
     void updateUser_whenUserNotFound_thenThrowNewNotFoundException() {
         Integer userId = user.getId();
-        when(inMemoryUserStorage.getUser(userId)).thenReturn(null);
+        when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> userServiceImpl.getUser(userId));
+        NotFoundException notFoundException = assertThrows(NotFoundException.class,
+                () -> userServiceImpl.updateUser(userId, UserMapper.toUserDto(updatedUser)));
 
-        verify(inMemoryUserStorage, times(1)).getUser(userId);
+        assertEquals("User with Id=" + userId + " - does not exist", notFoundException.getMessage());
+        verify(userRepository, times(1)).findById(userId);
+        verify(userRepository, never()).save(user);
     }
 
     @Test
     void updateUser_whenUserFound_thenReturnUser() {
         Integer userId = user.getId();
-        User updatedUser = new User(userId, "newName", "newEmail@yandex.ru");
-        UserDto updatedUserDto = UserMapper.toUserDto(updatedUser);
-        lenient().when(inMemoryUserStorage.getUser(userId)).thenReturn(user);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        userServiceImpl.updateUser(userId, userDto);
+        userServiceImpl.updateUser(userId, UserMapper.toUserDto(updatedUser));
 
-        assertEquals(updatedUser,
-                ReflectionTestUtils.invokeMethod(InMemoryUserStorage.class, "makeUser", user, updatedUserDto));
-    }
-
-    @Test
-    void deleteUser_whenUserNotFound_thenThrowException() {
-        Integer userId = user.getId();
-        when(inMemoryUserStorage.deleteUser(userId)).thenReturn(null);
-
-        assertThrows(NotFoundException.class, () -> userServiceImpl.deleteUser(userId));
-
-        verify(inMemoryUserStorage, times(1)).deleteUser(userId);
+        verify(userRepository, times(1)).save(userArgumentCaptor.capture());
+        User captorUser = userArgumentCaptor.getValue();
+        assertEquals(userId, captorUser.getId());
+        assertEquals(updatedUser.getName(), captorUser.getName());
+        assertEquals(updatedUser.getEmail(), captorUser.getEmail());
     }
 
     @Test
     void deleteUser() {
         Integer userId = user.getId();
-        when(inMemoryUserStorage.deleteUser(userId)).thenReturn(user);
+        doNothing().when(userRepository).deleteById(userId);
 
-        inMemoryUserStorage.deleteUser(userId);
+        userRepository.deleteById(userId);
 
-        verify(inMemoryUserStorage, times(1)).deleteUser(userId);
+        verify(userRepository, times(1)).deleteById(userId);
     }
 }

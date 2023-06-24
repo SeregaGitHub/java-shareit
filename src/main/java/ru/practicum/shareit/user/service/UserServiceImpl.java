@@ -2,58 +2,60 @@ package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.userUtil.UserMapper;
 import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.storage.UserStorage;
+import ru.practicum.shareit.user.storage.UserRepository;
+import ru.practicum.shareit.user.userUtil.UserUtil;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@Primary
 @Slf4j
-@Validated
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final UserStorage userStorage;
+    private final UserRepository userRepository;
 
     @Override
     public List<User> getAllUsers() {
-        return userStorage.getAllUsers();
+        return userRepository.findAll();
     }
 
     @Override
     public User getUser(Integer id) {
-        User user = userStorage.getUser(id);
-        if (user == null) {
-            log.warn("User with Id={} - does not exist", id);
-            throw new NotFoundException("User with Id=" + id + " - does not exist");
-        } else {
-            return user;
-        }
+        return userRepository.findById(id).orElseThrow(
+                () -> new NotFoundException("User with Id=" + id + " - does not exist"));
     }
 
     @Override
     public UserDto addUser(UserDto userDto) {
         log.info("User with name={} was added", userDto.getName());
-        userStorage.addUser(userDto);
+        Integer userId = userRepository.save(UserMapper.toUser(userDto)).getId();
+        userDto.setId(userId);
         return userDto;
     }
 
     @Override
     public UserDto updateUser(Integer id, UserDto userDto) {
-        return userStorage.updateUser(id, userDto);
+        Optional<User> userOpt = userRepository.findById(id);
+
+        User user = userOpt.orElseThrow(
+                () -> new NotFoundException("User with Id=" + id + " - does not exist"));
+
+        user = UserUtil.makeUser(user, userDto);
+        userRepository.save(user);
+        log.info("User with Id={} was updated", id);
+        return UserMapper.toUserDto(user);
     }
 
     @Override
     public void deleteUser(Integer id) {
-        User user = userStorage.deleteUser(id);
-        if (user == null) {
-            log.warn("User with Id={} - does not exist", id);
-            throw new NotFoundException("User with Id=" + id + " - does not exist");
-        } else {
-            log.info("User with Id={} - was deleted", id);
-        }
+        log.info("User with Id={} - was deleted", id);
+        userRepository.deleteById(id);
     }
 }

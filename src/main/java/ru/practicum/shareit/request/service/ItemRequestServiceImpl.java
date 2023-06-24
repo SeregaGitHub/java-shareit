@@ -23,7 +23,7 @@ import java.util.Set;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class ItemRequestHibernateService implements ItemRequestService {
+public class ItemRequestServiceImpl implements ItemRequestService {
     private final ItemRequestRepository itemRequestRepository;
     private final RequestMapper requestMapper;
     private final UserRepository userRepository;

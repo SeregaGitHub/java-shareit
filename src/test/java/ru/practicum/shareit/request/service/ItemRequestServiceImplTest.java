@@ -29,7 +29,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class ItemRequestHibernateServiceTest {
+class ItemRequestServiceImplTest {
     @Mock
     private ItemRequestRepository itemRequestRepository;
     @Mock
@@ -39,7 +39,7 @@ class ItemRequestHibernateServiceTest {
     @Mock
     private ItemRepository itemRepository;
     @InjectMocks
-    private ItemRequestHibernateService itemRequestHibernateService;
+    private ItemRequestServiceImpl itemRequestServiceImpl;
     private User user;
     private User requester;
     private ItemRequest itemRequest;
@@ -67,7 +67,7 @@ class ItemRequestHibernateServiceTest {
         when(userRepository.findById(requesterId)).thenReturn(Optional.empty());
 
         NotFoundException notFoundException = assertThrows(NotFoundException.class,
-                () -> itemRequestHibernateService.addItemRequest(requesterId, itemRequestDto));
+                () -> itemRequestServiceImpl.addItemRequest(requesterId, itemRequestDto));
         assertEquals("User with Id=" + requesterId + " does not exist", notFoundException.getMessage());
 
         verify(userRepository, times(1)).findById(requesterId);
@@ -80,7 +80,7 @@ class ItemRequestHibernateServiceTest {
         when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
         when(itemRequestRepository.save(itemRequest)).thenReturn(itemRequest);
 
-        ItemRequestDto returnedItemRequest = itemRequestHibernateService.addItemRequest(requesterId, itemRequestDto);
+        ItemRequestDto returnedItemRequest = itemRequestServiceImpl.addItemRequest(requesterId, itemRequestDto);
 
         assertEquals(itemRequestDto, returnedItemRequest);
         verify(userRepository, times(1)).findById(requesterId);
@@ -93,7 +93,7 @@ class ItemRequestHibernateServiceTest {
         when(userRepository.findById(requesterId)).thenReturn(Optional.empty());
 
         NotFoundException notFoundException = assertThrows(NotFoundException.class,
-                () -> itemRequestHibernateService.getItemRequestsList(requesterId));
+                () -> itemRequestServiceImpl.getItemRequestsList(requesterId));
         assertEquals("User with Id=" + requesterId + " - does not exist", notFoundException.getMessage());
 
         verify(userRepository, times(1)).findById(requesterId);
@@ -106,7 +106,7 @@ class ItemRequestHibernateServiceTest {
         when(userRepository.findById(requesterId)).thenReturn(Optional.of(requester));
         when(itemRequestRepository.getItemRequestsOfUserList(requesterId)).thenReturn(List.of(itemRequestDto));
 
-        List<ItemRequestWithItemsDto> returnedList = itemRequestHibernateService.getItemRequestsList(requesterId);
+        List<ItemRequestWithItemsDto> returnedList = itemRequestServiceImpl.getItemRequestsList(requesterId);
 
         assertEquals(1, returnedList.size());
         verify(userRepository, times(1)).findById(requesterId);
@@ -120,7 +120,7 @@ class ItemRequestHibernateServiceTest {
         when(itemRequestRepository.getItemRequestsList(userId))
                 .thenReturn(List.of(itemRequestDto));
 
-        List<ItemRequestWithItemsDto> returnedList = itemRequestHibernateService.getAllItemRequestsList(
+        List<ItemRequestWithItemsDto> returnedList = itemRequestServiceImpl.getAllItemRequestsList(
                 userId, null, null);
 
         assertEquals(1, returnedList.size());
@@ -134,7 +134,7 @@ class ItemRequestHibernateServiceTest {
         when(userRepository.findById(requesterId)).thenReturn(Optional.empty());
 
         NotFoundException notFoundException = assertThrows(NotFoundException.class,
-                () -> itemRequestHibernateService.getAllItemRequestsList(requesterId, null, null));
+                () -> itemRequestServiceImpl.getAllItemRequestsList(requesterId, null, null));
         assertEquals("User with Id=" + requesterId + " - does not exist", notFoundException.getMessage());
 
         verify(userRepository, times(1)).findById(requesterId);
@@ -148,7 +148,7 @@ class ItemRequestHibernateServiceTest {
         when(itemRequestRepository.getItemRequestsList(userId, PageRequest.of(0, 1)))
                 .thenReturn(List.of(itemRequestDto));
 
-        List<ItemRequestWithItemsDto> returnedList = itemRequestHibernateService.getAllItemRequestsList(
+        List<ItemRequestWithItemsDto> returnedList = itemRequestServiceImpl.getAllItemRequestsList(
                 userId, 0, 1);
 
         assertEquals(1, returnedList.size());
@@ -165,7 +165,7 @@ class ItemRequestHibernateServiceTest {
         when(itemRequestRepository.findById(requestId)).thenReturn(Optional.of(itemRequest));
         when(itemRepository.getItemsWithRequestDtoList(Set.of(requestId))).thenReturn(List.of(itemWithRequestIdDto));
 
-        ItemRequestWithItemsDto returnedItemRequest = itemRequestHibernateService.getItemRequestById(userId, requestId);
+        ItemRequestWithItemsDto returnedItemRequest = itemRequestServiceImpl.getItemRequestById(userId, requestId);
 
         assertEquals(itemRequestWithItemsDto, returnedItemRequest);
         verify(userRepository, times(1)).findById(userId);
@@ -180,7 +180,7 @@ class ItemRequestHibernateServiceTest {
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
         NotFoundException notFoundException = assertThrows(NotFoundException.class,
-                () -> itemRequestHibernateService.getItemRequestById(userId, requestId));
+                () -> itemRequestServiceImpl.getItemRequestById(userId, requestId));
         assertEquals("User with Id=" + userId + " - does not exist", notFoundException.getMessage());
 
         verify(userRepository, times(1)).findById(userId);
@@ -196,7 +196,7 @@ class ItemRequestHibernateServiceTest {
         when(itemRequestRepository.findById(requestId)).thenReturn(Optional.empty());
 
         NotFoundException notFoundException = assertThrows(NotFoundException.class,
-                () -> itemRequestHibernateService.getItemRequestById(userId, requestId));
+                () -> itemRequestServiceImpl.getItemRequestById(userId, requestId));
         assertEquals("Item request with Id=" + requestId + " - does not exist", notFoundException.getMessage());
 
         verify(userRepository, times(1)).findById(userId);
