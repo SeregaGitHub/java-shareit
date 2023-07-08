@@ -16,4 +16,6 @@ public interface ItemStorage {
     List<ItemWithBookingDto> getAllUserItems(Integer owner);
 
     List<ItemDto> getItemsBySearch(String text);
+
+    void deleteItem(Integer id);
 }

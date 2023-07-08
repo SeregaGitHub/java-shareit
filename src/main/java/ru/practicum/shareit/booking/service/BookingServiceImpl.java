@@ -2,13 +2,14 @@ package ru.practicum.shareit.booking.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.booking.bookingUtil.BookingMapper;
 import ru.practicum.shareit.booking.bookingUtil.BookingUtil;
 import ru.practicum.shareit.booking.bookingUtil.State;
 import ru.practicum.shareit.booking.bookingUtil.Status;
 import ru.practicum.shareit.booking.dto.BookingDto;
-import ru.practicum.shareit.booking.bookingUtil.BookingMapper;
+import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.storage.BookingRepository;
 import ru.practicum.shareit.exception.BookingErrorException;
 import ru.practicum.shareit.exception.NotFoundException;
@@ -16,8 +17,10 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.storage.ItemRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.storage.UserRepository;
+import ru.practicum.shareit.util.RequestPaginationValid;
 
 import javax.transaction.Transactional;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
@@ -25,14 +28,18 @@ import java.util.Objects;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class BookingHibernateService implements BookingService {
+public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final Clock clock;
 
     @Override
     @Transactional
     public Booking addBooking(Integer booker, BookingDto bookingDto) {
+        if (bookingDto.getItemId() <= 0) {
+            throw new BookingErrorException("Вам необходимо указать какой предмет вы хотите забронировать");
+        }
         Booking booking;
         boolean checkTime = BookingUtil.checkStartAndEndTime(bookingDto.getStart(), bookingDto.getEnd());
         if (checkTime) {
@@ -88,46 +95,62 @@ public class BookingHibernateService implements BookingService {
     }
 
     @Override
-    public List<Booking> getAllUserBookings(Integer booker, String stateString) {
+    public List<Booking> getAllUserBookings(Integer booker, String stateString, Integer from, Integer size) {
+        RequestPaginationValid.requestPaginationValid(from, size);
+
         userRepository.findById(booker).orElseThrow(
                 () -> new NotFoundException("User with Id=" + booker + " - does not exist"));
         State state = BookingUtil.makeState(stateString);
-        LocalDateTime localDateTimeNow = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
 
         if (state.equals(State.WAITING)) {
-            return bookingRepository.getUserBookingsByStatus(booker, Status.WAITING);
+                return bookingRepository.getUserBookingsByStatus(booker, Status.WAITING,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
         } else if (state.equals(State.REJECTED)) {
-            return bookingRepository.getUserBookingsByStatus(booker, Status.REJECTED);
+                return bookingRepository.getUserBookingsByStatus(booker, Status.REJECTED,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
         } else if (state.equals(State.FUTURE)) {
-            return bookingRepository.getUserBookingInFuture(booker, localDateTimeNow);
+                return bookingRepository.getUserBookingInFuture(booker, now,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
         } else if (state.equals(State.PAST)) {
-            return bookingRepository.getUserBookingInPast(booker, localDateTimeNow);
+                return bookingRepository.getUserBookingInPast(booker, now,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
         } else if (state.equals(State.CURRENT)) {
-            return bookingRepository.getUserBookingInCurrent(booker, localDateTimeNow);
+                return bookingRepository.getUserBookingInCurrent(booker, now,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
         } else {
-            return bookingRepository.getAllUserBookings(booker);
-        }
+                return bookingRepository.getAllUserBookings(booker,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
+            }
     }
 
     @Override
-    public List<Booking> getAllOwnerBooking(Integer owner, String stateString) {
+    public List<Booking> getAllOwnerBooking(Integer owner, String stateString, Integer from, Integer size) {
+        RequestPaginationValid.requestPaginationValid(from, size);
+
         userRepository.findById(owner).orElseThrow(
                 () -> new NotFoundException("User with Id=" + owner + " - does not exist"));
         State state = BookingUtil.makeState(stateString);
-        LocalDateTime localDateTimeNow = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(clock);
 
         if (state.equals(State.WAITING)) {
-            return bookingRepository.getOwnerBookingsByStatus(owner, Status.WAITING);
+                return bookingRepository.getOwnerBookingsByStatus(owner, Status.WAITING,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
         } else if (state.equals(State.REJECTED)) {
-            return bookingRepository.getOwnerBookingsByStatus(owner, Status.REJECTED);
+                return bookingRepository.getOwnerBookingsByStatus(owner, Status.REJECTED,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
         } else if (state.equals(State.FUTURE)) {
-            return bookingRepository.getOwnerBookingInFuture(owner, localDateTimeNow);
+                return bookingRepository.getOwnerBookingInFuture(owner, now,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
         } else if (state.equals(State.PAST)) {
-            return bookingRepository.getOwnerBookingInPast(owner, localDateTimeNow);
+                return bookingRepository.getOwnerBookingInPast(owner, now,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
         } else if (state.equals(State.CURRENT)) {
-            return bookingRepository.getOwnerBookingInCurrent(owner, localDateTimeNow);
+                return bookingRepository.getOwnerBookingInCurrent(owner, now,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
         } else {
-            return bookingRepository.getAllOwnerBookings(owner);
-        }
+                return bookingRepository.getAllOwnerBookings(owner,
+                        PageRequest.of(from > 0 ? from / size : 0, size));
+            }
     }
 }

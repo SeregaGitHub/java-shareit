@@ -1,12 +1,44 @@
 package ru.practicum.shareit.request;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.dto.ItemRequestWithItemsDto;
+import ru.practicum.shareit.request.service.ItemRequestService;
+import ru.practicum.shareit.util.mark.Create;
 
-/**
- * TODO Sprint add-item-requests.
- */
+import java.util.List;
+
 @RestController
 @RequestMapping(path = "/requests")
+@Validated
+@RequiredArgsConstructor
 public class ItemRequestController {
+    private final ItemRequestService itemRequestService;
+
+    @PostMapping
+    public ItemRequestDto addRequest(@RequestHeader("X-Sharer-User-Id") Integer userId,
+                                     @Validated(Create.class) @RequestBody ItemRequestDto itemRequestDto) {
+        itemRequestService.addItemRequest(userId, itemRequestDto);
+        return itemRequestDto;
+    }
+
+    @GetMapping
+    public List<ItemRequestWithItemsDto> getItemRequestsList(@RequestHeader("X-Sharer-User-Id") Integer userId) {
+        return itemRequestService.getItemRequestsList(userId);
+    }
+
+    @GetMapping("/{requestId}")
+    public ItemRequestWithItemsDto getItemRequestById(@RequestHeader("X-Sharer-User-Id") Integer userId,
+                                                      @PathVariable("requestId") Integer requestId) {
+        return itemRequestService.getItemRequestById(userId, requestId);
+    }
+
+    @GetMapping("/all")
+    public List<ItemRequestWithItemsDto> getAllItemRequestsList(@RequestHeader("X-Sharer-User-Id") Integer userId,
+                                                                @RequestParam(value = "from", required = false) Integer from,
+                                                                @RequestParam(value = "size", required = false) Integer size) {
+        return itemRequestService.getAllItemRequestsList(userId, from, size);
+    }
 }

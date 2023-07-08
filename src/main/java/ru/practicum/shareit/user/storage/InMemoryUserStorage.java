@@ -38,18 +38,18 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public UserDto updateUser(Integer id, UserDto updatedUser) {
-        Optional<String> opt = Optional.ofNullable(updatedUser.getEmail());
-        String checkEmail;
-        if (opt.isPresent()) {
-            checkEmail = opt.get();
-            Utilities.checkDuplicateEmailWhenUpdating(checkEmail, users, id);
-        }
-
         User user = getUser(id);
         if (user == null) {
             log.warn("User with Id={} - does not exist", id);
             throw new NotFoundException("User with Id=" + id + " - does not exist");
         } else {
+            Optional<String> opt = Optional.ofNullable(updatedUser.getEmail());
+            String checkEmail;
+            if (opt.isPresent()) {
+                checkEmail = opt.get();
+                Utilities.checkDuplicateEmailWhenUpdating(checkEmail, users, id);
+            }
+
             user = makeUser(user, updatedUser);
             users.put(user.getId(), user);
             log.info("User with Id={} was updated", id);
@@ -62,7 +62,7 @@ public class InMemoryUserStorage implements UserStorage {
         return users.remove(id);
     }
 
-    private User makeUser(User oldUser, UserDto userDto) {
+    private static User makeUser(User oldUser, UserDto userDto) {
         return User.builder()
                 .id(oldUser.getId())
                 .name(userDto.getName() == null ? oldUser.getName() : userDto.getName())

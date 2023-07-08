@@ -62,7 +62,13 @@ public class InMemoryItemStorage implements ItemStorage {
                                                          .collect(Collectors.toList());
     }
 
-    private Item makeItem(Item item, ItemDto itemDto) {
+    @Override
+    public void deleteItem(Integer id) {
+        Item removeItem = items.remove(id);
+        userItems.remove(removeItem.getOwner().getId());
+    }
+
+    private static Item makeItem(Item item, ItemDto itemDto) {
         return Item.builder()
                 .id(item.getId())
                 .name(itemDto.getName() == null ? item.getName() : itemDto.getName())
@@ -70,5 +76,9 @@ public class InMemoryItemStorage implements ItemStorage {
                 .available(itemDto.getAvailable() == null ? item.getAvailable() : itemDto.getAvailable())
                 .owner(item.getOwner())
                 .build();
+    }
+
+    private void clearUserItems() {
+        userItems.clear();
     }
 }

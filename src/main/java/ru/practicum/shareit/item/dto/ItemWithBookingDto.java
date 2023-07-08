@@ -52,13 +52,4 @@ public class ItemWithBookingDto extends ItemDto {
     public int hashCode() {
         return Objects.hash(super.hashCode(), lastBooking, nextBooking, comments);
     }
-
-    @Override
-    public String toString() {
-        return "ItemWithBookingDto{" +
-                "lastBooking=" + lastBooking +
-                ", nextBooking=" + nextBooking +
-                ", comments=" + comments +
-                "} " + super.toString();
-    }
 }

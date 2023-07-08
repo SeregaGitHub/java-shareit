@@ -1,21 +1,19 @@
 package ru.practicum.shareit.item.itemUtil;
 
-import org.springframework.stereotype.Component;
+import lombok.experimental.UtilityClass;
 import ru.practicum.shareit.booking.dto.BookingForItemDto;
-import ru.practicum.shareit.item.dto.CommentDto;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.ItemShot;
-import ru.practicum.shareit.item.dto.ItemWithBookingDto;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
+@UtilityClass
 public class ItemMapper {
-    public static ItemDto toItemDto(Item item) {
+    public ItemDto toItemDto(Item item) {
         return ItemDto.builder()
                 .id(item.getId())
                 .name(item.getName())
@@ -24,7 +22,7 @@ public class ItemMapper {
                 .build();
     }
 
-    public static Item toItem(User owner, ItemDto itemDto) {
+    public Item toItem(User owner, ItemDto itemDto) {
         return Item.builder()
                 .id(itemDto.getId())
                 .name(itemDto.getName())
@@ -34,7 +32,18 @@ public class ItemMapper {
                 .build();
     }
 
-    public static ItemWithBookingDto toItemWithBookingAndCommentDto(Item item, List<BookingForItemDto> bookingList,
+    public Item toItem(User owner, ItemWithRequestDto itemDto, ItemRequest itemRequest) {
+        return Item.builder()
+                .id(itemDto.getId())
+                .name(itemDto.getName())
+                .description(itemDto.getDescription())
+                .available(itemDto.getAvailable())
+                .owner(owner)
+                .itemRequest(itemRequest)
+                .build();
+    }
+
+    public ItemWithBookingDto toItemWithBookingAndCommentDto(Item item, List<BookingForItemDto> bookingList,
                                                                     LocalDateTime now, List<CommentDto> commentDtoList) {
         BookingForItemDto lastBooking = null;
         BookingForItemDto nextBooking = null;
@@ -50,7 +59,7 @@ public class ItemMapper {
                 item.getName(), item.getDescription(), item.getAvailable(), lastBooking, nextBooking, commentDtoList);
     }
 
-    public static ItemWithBookingDto toItemWithBookingDto(ItemShot itemShot, List<BookingForItemDto> bookingList,
+    public ItemWithBookingDto toItemWithBookingDto(ItemShot itemShot, List<BookingForItemDto> bookingList,
                                                           LocalDateTime now) {
         BookingForItemDto lastBooking = null;
         BookingForItemDto nextBooking = null;
@@ -66,7 +75,7 @@ public class ItemMapper {
                 itemShot.getAvailable(), lastBooking, nextBooking, new ArrayList<>());
     }
 
-    public static ItemWithBookingDto toItemNoBookingDto(Item item, List<CommentDto> commentDtoList) {
+    public ItemWithBookingDto toItemNoBookingDto(Item item, List<CommentDto> commentDtoList) {
         return new ItemWithBookingDto(item.getId(),
                 item.getName(), item.getDescription(), item.getAvailable(), null, null, commentDtoList);
     }

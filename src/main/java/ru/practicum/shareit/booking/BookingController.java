@@ -8,6 +8,8 @@ import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.util.mark.Create;
 
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
@@ -37,13 +39,19 @@ public class BookingController {
 
     @GetMapping
     public List<Booking> getAllUserBooking(@RequestHeader("X-Sharer-User-Id") Integer booker,
-                                           @RequestParam(value = "state", defaultValue = "ALL") String state) {
-        return bookingService.getAllUserBookings(booker, state);
+                                           @RequestParam(value = "state", defaultValue = "ALL") String state,
+                                           @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") Integer from,
+                                           @Positive @RequestParam(value = "size",
+                                                   defaultValue = "2147483647") Integer size) {
+        return bookingService.getAllUserBookings(booker, state, from, size);
     }
 
     @GetMapping("/owner")
     public List<Booking> getAllOwnerBooking(@RequestHeader("X-Sharer-User-Id") Integer owner,
-                                            @RequestParam(value = "state", defaultValue = "ALL") String state) {
-        return bookingService.getAllOwnerBooking(owner, state);
+                                            @RequestParam(value = "state", defaultValue = "ALL") String state,
+                                            @PositiveOrZero @RequestParam(value = "from", defaultValue = "0") Integer from,
+                                            @Positive @RequestParam(value = "size",
+                                                    defaultValue = "2147483647") Integer size) {
+        return bookingService.getAllOwnerBooking(owner, state, from, size);
     }
 }

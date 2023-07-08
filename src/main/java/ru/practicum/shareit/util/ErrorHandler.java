@@ -54,8 +54,8 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    public Map<String, String> handleForbiddenError(ForbiddenException exception) {
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleCommentError(CommentErrorException exception) {
         return Map.of(
                 ERROR_MESSAGE, exception.getMessage()
         );
@@ -63,7 +63,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Map<String, String> handleTimeError(CommentErrorException exception) {
+    public Map<String, String> handleItemRequestPagination(RequestPaginationException exception) {
         return Map.of(
                 ERROR_MESSAGE, exception.getMessage()
         );
