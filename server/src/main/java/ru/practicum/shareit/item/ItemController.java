@@ -7,8 +7,6 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemWithBookingDto;
 import ru.practicum.shareit.item.dto.ItemWithRequestDto;
-import ru.practicum.shareit.util.mark.Create;
-import ru.practicum.shareit.util.mark.Update;
 import ru.practicum.shareit.item.service.ItemService;
 
 import java.util.List;
@@ -22,14 +20,14 @@ public class ItemController {
 
     @PostMapping
     public ItemWithRequestDto addItem(@RequestHeader("X-Sharer-User-Id") Integer owner,
-                           @Validated(Create.class) @RequestBody ItemWithRequestDto itemWithRequestDto) {
+                                      @RequestBody ItemWithRequestDto itemWithRequestDto) {
         itemService.addItem(owner, itemWithRequestDto);
         return itemWithRequestDto;
     }
 
     @PatchMapping("/{id}")
     public ItemDto updateItem(@RequestHeader("X-Sharer-User-Id") Integer owner,
-                              @RequestBody @Validated(Update.class) ItemDto itemDto, @PathVariable("id") Integer id) {
+                              @RequestBody ItemDto itemDto, @PathVariable("id") Integer id) {
         return itemService.updateItem(owner, itemDto, id);
     }
 
@@ -54,7 +52,7 @@ public class ItemController {
 
     @PostMapping("/{itemId}/comment")
     public CommentDto addComment(@RequestHeader("X-Sharer-User-Id") Integer userId, @PathVariable("itemId") Integer itemId,
-                                 @Validated(Create.class) @RequestBody CommentDto commentDto) {
+                                 @RequestBody CommentDto commentDto) {
         return itemService.addComment(userId, itemId, commentDto);
     }
 }

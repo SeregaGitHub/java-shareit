@@ -10,7 +10,7 @@ import javax.validation.constraints.*;
 @Data
 @Builder
 public class UserDto {
-    @Positive(groups = Update.class, message = "Id пользователя не может быть отрицательным числом.")
+    @Positive(groups = Update.class, message = "Id не может быть отрицательным числом.")
     private Integer id;
     @NotBlank(groups = {Create.class}, message = "Имя не может быть пустым.")
     @Size(max = 64, groups = {Create.class, Update.class}, message = "Имя не может быть больше 64 символов.")
