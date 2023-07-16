@@ -8,7 +8,7 @@ services:
       - "8080:8080"
     depends_on:
     environment:
-        SHAREIT_SERVER_URL=http://server:9090
+        SHAREIT_SERVER_URL: http://server:9090
 
   server:
     build:
@@ -18,7 +18,7 @@ services:
       - "9090:9090"
     depends_on:
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/shareit
+        SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/shareit
 
   db:
     image:
