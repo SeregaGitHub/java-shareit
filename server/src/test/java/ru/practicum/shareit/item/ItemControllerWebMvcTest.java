@@ -121,23 +121,6 @@ class ItemControllerWebMvcTest {
 
     @SneakyThrows
     @Test
-    void addItem_whenDescriptionIsEmpty_thenReturnBadRequest() {
-        ItemWithRequestDto itemWithRequestDtoEmptyDescription = new ItemWithRequestDto(0, "itemName",
-                "", true, null);
-        when(itemService.addItem(owner.getId(), itemWithRequestDtoEmptyDescription))
-                .thenReturn(itemWithRequestDtoEmptyDescription);
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/items")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", 1)
-                        .content(objectMapper.writeValueAsString(itemWithRequestDtoEmptyDescription)))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
-
-        verify(itemService, never()).addItem(owner.getId(), itemWithRequestDtoEmptyDescription);
-    }
-
-    @SneakyThrows
-    @Test
     void updateItem_whenItemFound_thenUpdateSomeFields() {
         ItemDto itemDto = ItemDto.builder()
                 .id(0)
@@ -162,25 +145,6 @@ class ItemControllerWebMvcTest {
 
         assertEquals(objectMapper.writeValueAsString(itemDto), result);
         verify(itemService, times(1)).updateItem(owner.getId(), itemDto, itemDto.getId());
-    }
-
-    @SneakyThrows
-    @Test
-    void updateItem_whenItemNameIsToMatch_thenReturnBadRequest() {
-        ItemDto itemDto = ItemDto.builder()
-                .id(0)
-                .name("_____updateItem_whenItemNameIsToMatch_thenReturnBadRequest()_____")
-                .description("newItemDescription")
-                .available(false)
-                .build();
-
-        mockMvc.perform(MockMvcRequestBuilders.patch("/items/{id}", itemDto.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", 1)
-                        .content(objectMapper.writeValueAsString(itemDto)))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
-
-        verify(itemService, never()).updateItem(owner.getId(), itemDto, itemDto.getId());
     }
 
     @SneakyThrows
@@ -285,20 +249,6 @@ class ItemControllerWebMvcTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].available").value(true));
 
         verify(itemService, times(1)).getItemsBySearch("itemN", 0, 1);
-    }
-
-    @SneakyThrows
-    @Test
-    void addComment_whenCommentHaveEmptyText_whenReturnBadRequest() {
-        CommentDto commentDtoWithEmptyText = new CommentDto(0, "", "author", ldt);
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/items/{itemId}/comment", itemWithRequestDto.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", 1)
-                        .content(objectMapper.writeValueAsString(commentDtoWithEmptyText)))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
-
-        verify(itemService, never()).addComment(owner.getId(), itemWithRequestDto.getId(), commentDtoWithEmptyText);
     }
 
     @SneakyThrows

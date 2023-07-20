@@ -70,23 +70,6 @@ class ItemRequestControllerWebMvcTest {
 
     @SneakyThrows
     @Test
-    void addRequest_whenDescriptionIsNotValid_thenReturnBadRequest() {
-        Integer requesterId = itemRequestDto.getRequester();
-        LocalDateTime ldt = LocalDateTime.parse(LocalDateTime.now().toString().substring(0, 19));
-        ItemRequestDto itemRequestDto = new ItemRequestDto(0, "", ldt, requesterId);
-        when(itemRequestService.addItemRequest(requesterId, itemRequestDto)).thenReturn(itemRequestDto);
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/requests")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", 1)
-                        .content(objectMapper.writeValueAsString(itemRequestDto)))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
-
-        verify(itemRequestService, never()).addItemRequest(requesterId, itemRequestDto);
-    }
-
-    @SneakyThrows
-    @Test
     void addRequest_whenEverythingIsOk_whenReturnOK() {
         when(itemRequestService.addItemRequest(itemRequestDto.getRequester(), itemRequestDto)).thenReturn(itemRequestDto);
 
