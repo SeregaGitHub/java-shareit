@@ -36,7 +36,7 @@ class BookingControllerGatewayWebMvcTest {
     @MockBean
     private ItemRequestClient itemRequestClient;
     private LocalDateTime now;
-    private final String URL_BOOKINGS = "/bookings";
+    private static final String URL_BOOKINGS = "/bookings";
 
     @BeforeEach
     void beforeEach() {

@@ -32,7 +32,7 @@ class ItemRequestGatewayWebMvcControllerTest {
     private ItemClient itemClient;
     @MockBean
     private ItemRequestClient itemRequestClient;
-    private final String URL_REQUESTS = "/requests";
+    private static final String URL_REQUESTS = "/requests";
 
     @SneakyThrows
     @Test

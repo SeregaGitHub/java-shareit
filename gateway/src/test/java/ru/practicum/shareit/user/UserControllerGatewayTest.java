@@ -22,7 +22,7 @@ class UserControllerGatewayTest {
     @InjectMocks
     private UserController userController;
     private UserDto userDto;
-    private final String URL_USERS = "/users";
+    private static final String URL_USERS = "/users";
 
     @BeforeEach
     void setUp() {

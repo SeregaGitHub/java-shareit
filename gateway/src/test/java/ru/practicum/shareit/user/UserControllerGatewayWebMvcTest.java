@@ -40,7 +40,7 @@ class UserControllerGatewayWebMvcTest {
     private ItemClient itemClient;
     @MockBean
     private ItemRequestClient itemRequestClient;
-    private final String URL_USERS = "/users";
+    private static final String URL_USERS = "/users";
 
     private final UserDto userDto = UserDto.builder()
             .id(1)
