@@ -4,4 +4,4 @@ COPY target/*.jar app.jar
 
 ENTRYPOINT ["java","-jar","/app.jar"]
 
-ENV TZ=Europe/Moscow
+ENV "TZ=Europe/Moscow"
