@@ -8,7 +8,6 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @NamedNativeQuery(name = "Booking.getLastAndNextBooking",
@@ -44,23 +43,18 @@ public class Booking {
     @Column(name = "booking_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Integer id;
-    @NotNull
     @Column(name = "start_time", nullable = false)
     LocalDateTime start;
-    @NotNull
     @Column(name = "end_time", nullable = false)
     LocalDateTime end;
-    @NotNull
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id", nullable = false)
     Item item;
-    @NotNull
     @ToString.Exclude
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     User booker;
-    @NotNull
     @Column(name = "status")
     @Enumerated(EnumType.STRING)
     Status status;

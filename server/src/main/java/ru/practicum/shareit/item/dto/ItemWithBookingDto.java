@@ -2,8 +2,6 @@ package ru.practicum.shareit.item.dto;
 
 import ru.practicum.shareit.booking.dto.BookingForItemDto;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Objects;
 
@@ -12,10 +10,10 @@ public class ItemWithBookingDto extends ItemDto {
     private final BookingForItemDto nextBooking;
     private final List<CommentDto> comments;
 
-    public ItemWithBookingDto(@NotNull Integer id,
-                              @NotBlank String name,
-                              @NotBlank String description,
-                              @NotNull Boolean available,
+    public ItemWithBookingDto(Integer id,
+                              String name,
+                              String description,
+                              Boolean available,
                               BookingForItemDto lastBooking,
                               BookingForItemDto nextBooking,
                               List<CommentDto> comments

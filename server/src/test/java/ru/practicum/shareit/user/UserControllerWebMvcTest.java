@@ -76,20 +76,6 @@ class UserControllerWebMvcTest {
         verify(userService, times(1)).getUser(userId);
     }
 
-    /*@SneakyThrows
-    @Test
-    void addUser_whenNameIsNotValid_thenReturnBadRequest() {
-        User userWithNotValidName = new User(0, "", "email@yandex.ru");
-        UserDto userDto = UserMapper.toUserDto(userWithNotValidName);
-
-        mockMvc.perform(MockMvcRequestBuilders.post("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userDto)))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
-
-        verify(userService, never()).addUser(userDto);
-    }*/
-
     @SneakyThrows
     @Test
     void addUser_whenEverythingIsOk_whenReturnOK() {
@@ -111,21 +97,6 @@ class UserControllerWebMvcTest {
         assertEquals(objectMapper.writeValueAsString(userDto), result);
         verify(userService, times(1)).addUser(userDto);
     }
-
-    /*@SneakyThrows
-    @Test
-    void updateUser_whenEmailIsNotValid_thenReturnBadRequest() {
-        Integer userId = 0;
-        User userWithNotValidEmail = new User(0, "name", "email.yandex.ru");
-        UserDto userDto = UserMapper.toUserDto(userWithNotValidEmail);
-
-        mockMvc.perform(MockMvcRequestBuilders.patch("/users/{id}", userId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userDto)))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
-
-        verify(userService, never()).updateUser(userId, userDto);
-    }*/
 
     @SneakyThrows
     @Test
